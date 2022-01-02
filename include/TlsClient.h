@@ -1,66 +1,99 @@
 #ifndef TLSCLIENT_H
 #define TLSCLIENT_H
 
+#include <openssl/ssl.h>
+
 #include "NetworkClient.h"
 
 namespace networking
 {
-class TlsClient: public NetworkClient
-{
-public:
-    TlsClient();
-    virtual ~TlsClient();
+    /**
+     * @brief Deleter for TLS object
+     */
+    struct SSL_Deleter
+    {
+        void operator()(SSL *ssl)
+        {
+            SSL_free(ssl);
+            return;
+        }
+    };
 
     /**
-     * TLS Client starten
-     * @param serverIp
-     * @param serverPort
-     * @param pathToCaCert
-     * @param pathToCert
-     * @param pathToPrivKey
-     * @return int (0 := success, other := failed)
+     * @brief Class for encrypted TLS client
      */
-    int start(const std::string& serverIp,
-              const int serverPort,
-              const char* const pathToCaCert,
-              const char* const pathToCert,
-              const char* const pathToPrivKey);
+    class TlsClient : public NetworkClient<SSL, SSL_Deleter>
+    {
+    public:
+        TlsClient();
+        virtual ~TlsClient();
 
-    /**
-     * Wird aufgerufen, sobald eine neue Nachricht empfangen wird
-     * Diese Methode muss von erbenden Klassen überschrieben werden
-     * @param tlsMsgFromServer
-     */
-    virtual void workOnMessage_TlsClient(const std::string tlsMsgFromServer) = 0;
+        /**
+         * @brief Do some stuff when a new message is received
+         * This method is abstract and must be implemented by derived classes
+         * 
+         * @param tlsMsgFromServer 
+         */
+        virtual void workOnMessage_TlsClient(const std::string tlsMsgFromServer) = 0;
 
-    /**
-     * Wird aufgerufen, sobal die Verbindung abreißt
-     * Diese Methode muss von erbenden Klassen überschrieben werden
-     */
-    virtual void workOnClosed_TlsClient() = 0;
+    private:
+        /**
+         * @brief Initialize the client
+         * Load certificates and keys
+         * 
+         * @param pathToCaCert 
+         * @param pathToCert 
+         * @param pathToPrivKey 
+         * @return int 
+         */
+        int init(const char *const pathToCaCert,
+                 const char *const pathToCert,
+                 const char *const pathToPrivKey) override final;
 
-private:
+        /**
+         * @brief Deinitialize the client
+         * Release the TLS context
+         */
+        void deinit() override final;
 
-    /**
-     * Wird aufgerufen, sobald eine neue Nachricht empfangen wird
-     * Diese Methode muss von erbenden Klassen überschrieben werden
-     * @param tlsMsgFromServer
-     */
-    void workOnMessage(const std::string tlsMsgFromServer);
+        /**
+         * @brief Initialize the connection
+         * Do handshake with the server and return pointer to the TLS context
+         * 
+         * @return SSL* 
+         */
+        SSL *connectionInit() override final;
 
-    /**
-     * Wird aufgerufen, sobal die Verbindung abreißt
-     * Diese Methode muss von erbenden Klassen überschrieben werden
-     */
-    void workOnClosed();
+        /**
+         * @brief Read raw data from the encrypted TLS socket
+         * 
+         * @return std::string 
+         */
+        std::string readMsg() override final;
 
-    // Start der Basisklasse entfernen
-    int start(const std::string&, const int, const char* const, const char* const, const char* const, const int, const unsigned int) = delete;
+        /**
+         * @brief Write raw data to the encrypted TLS socket
+         * 
+         * @param msg 
+         * @return true 
+         * @return false 
+         */
+        bool writeMsg(const std::string &msg) override final;
 
-    // Object kann nicht kopiert werden
-    TlsClient(const TlsClient&) = delete;
-    TlsClient& operator = (const TlsClient&) = delete;
-};
+        /**
+         * @brief Just call the special receive handler for TLS (wotkOnMessage_TlsClient)
+         * 
+         * @param msg 
+         */
+        void workOnMessage(const std::string msg) override final;
+
+        // TLS context
+        SSL_CTX *clientContext{nullptr};
+
+        // Disallow copy
+        TlsClient(const TlsClient &) = delete;
+        TlsClient &operator=(const TlsClient &) = delete;
+    };
 }
 
 #endif // TLSCLIENT_H
