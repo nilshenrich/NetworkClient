@@ -35,11 +35,11 @@ namespace networking
     /**
     * @brief Exception class for the NetworkClient class.
     */
-    class networking_error : public std::exception
+    class NetworkClient_error : public std::exception
     {
     public:
-        networking_error(std::string msg = "unexpected networking error") : msg{msg} {}
-        virtual ~networking_error() {}
+        NetworkClient_error(std::string msg = "unexpected networking error") : msg{msg} {}
+        virtual ~NetworkClient_error() {}
 
         const char *what()
         {
@@ -50,11 +50,11 @@ namespace networking
         std::string msg;
 
         // Delete default constructor
-        networking_error() = delete;
+        NetworkClient_error() = delete;
 
         // Disallow copy
-        networking_error(const networking_error &) = delete;
-        networking_error &operator=(const networking_error &) = delete;
+        NetworkClient_error(const NetworkClient_error &) = delete;
+        NetworkClient_error &operator=(const NetworkClient_error &) = delete;
     };
 
     /**
@@ -279,7 +279,7 @@ namespace networking
         // Receive incoming data from the server infinitely in the background while the client is running
         // If background task already exists, return with error
         if (recHandler.joinable())
-            throw networking_error("Error while starting background receive task. Background task already exists");
+            throw NetworkClient_error("Error while starting background receive task. Background task already exists");
         recHandler = thread{&NetworkClient::receive, this};
 
         return NETWORKCLIENT_START_OK;
