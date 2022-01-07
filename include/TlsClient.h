@@ -10,7 +10,7 @@ namespace networking
     /**
      * @brief Deleter for TLS object
      */
-    struct SSL_Deleter
+    struct NetworkClient_SSL_Deleter
     {
         void operator()(SSL *ssl)
         {
@@ -22,7 +22,7 @@ namespace networking
     /**
      * @brief Class for encrypted TLS client
      */
-    class TlsClient : public NetworkClient<SSL, SSL_Deleter>
+    class TlsClient : public NetworkClient<SSL, NetworkClient_SSL_Deleter>
     {
     public:
         TlsClient();
