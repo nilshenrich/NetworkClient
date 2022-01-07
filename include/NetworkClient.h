@@ -335,9 +335,21 @@ namespace networking
             if (msg.empty())
             {
 #ifdef DEVELOP
-                cout << typeid(this).name() << "::" << __func__ << ": Connection to server lost" << endl
-                     << "   -> TODO: Client beenden" << endl;
+                cout << typeid(this).name() << "::" << __func__ << ": Connection to server lost" << endl;
 #endif // DEVELOP
+
+                // Stop the client
+                running = false;
+
+                // Block the TCP socket to abort receiving process
+                if (shutdown(tcpSocket, SHUT_RDWR))
+                    return;
+
+                // Close the TCP socket
+                close(tcpSocket);
+
+                // Deinitialize the client
+                deinit();
 
                 return;
             }
