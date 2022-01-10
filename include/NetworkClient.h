@@ -319,7 +319,14 @@ namespace networking
         using namespace std;
 
         // Send the message to the server with leading and trailing characters to indicate the message length
-        return writeMsg(string{NETWORKCLIENT_CHAR_TRANSFER_START} + msg + string{NETWORKCLIENT_CHAR_TRANSFER_END});
+        if (running)
+            return writeMsg(string{NETWORKCLIENT_CHAR_TRANSFER_START} + msg + string{NETWORKCLIENT_CHAR_TRANSFER_END});
+
+#ifdef DEVELOP
+        cerr << typeid(this).name() << "::" << __func__ << ": Client not running" << endl;
+#endif // DEVELOP
+
+        return false;
     }
 
     template <class SocketType, class SocketDeleter>
