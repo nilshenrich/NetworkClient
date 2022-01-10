@@ -294,12 +294,15 @@ namespace networking
         running = false;
 
         // Block the TCP socket to abort receiving process
-        if (shutdown(tcpSocket, SHUT_RDWR))
-            return;
+        int shut{shutdown(tcpSocket, SHUT_RDWR)};
 
         // Wait for the background receive thread to finish
         if (recHandler.joinable())
             recHandler.join();
+
+        // If shutdown failed, abort stop here
+        if (shut)
+            return;
 
         // Close the TCP socket
         close(tcpSocket);
