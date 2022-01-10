@@ -273,14 +273,14 @@ namespace networking
             return NETWORKCLIENT_ERROR_START_DO_HANDSHAKE;
         }
 
-        // Client is now running
-        running = true;
-
         // Receive incoming data from the server infinitely in the background while the client is running
         // If background task already exists, return with error
         if (recHandler.joinable())
             throw NetworkClient_error("Error while starting background receive task. Background task already exists");
         recHandler = thread{&NetworkClient::receive, this};
+
+        // Client is now running
+        running = true;
 
         return NETWORKCLIENT_START_OK;
     }
