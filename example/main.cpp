@@ -30,10 +30,13 @@ public:
     int start()
     {
         // Start TCP client
-        TcpClient::start("localhost", 8081);
+        int start_tcp{TcpClient::start("localhost", 8081)};
 
         // Start TLS client
-        return TlsClient::start("localhost", 8082, "../keys/ca/ca_cert.pem", "../keys/client/client_cert.pem", "../keys/client/client_key.pem");
+        int start_tls{TlsClient::start("localhost", 8082, "../keys/ca/ca_cert.pem", "../keys/client/client_cert.pem", "../keys/client/client_key.pem")};
+
+        // Return code (2 bytes): High byte: TLS, low byte: TCP
+        return (start_tls << 8) | start_tcp;
     }
 
     // Stop TCP and TLS client
