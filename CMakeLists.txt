@@ -52,3 +52,6 @@ set_target_properties(networkClientTls PROPERTIES
 install(TARGETS networkClientTcp networkClientTls
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/NetworkClient)
+
+# Print build type
+message("Build type: ${CMAKE_BUILD_TYPE}")

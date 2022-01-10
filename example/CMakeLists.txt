@@ -31,3 +31,6 @@ target_link_libraries(example -lnetworkClientTcp -lnetworkClientTls -lcrypto -lc
 set_target_properties(example PROPERTIES
     CXX_STANDARD 17
     CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Print build type
+message("Build type: ${CMAKE_BUILD_TYPE}")
