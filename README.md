@@ -25,7 +25,7 @@ As the names say, **libnetworkClientTcp** creates a simple TCP client with no se
 
 ## Specifications
 
-1. Maximum message size:  **std::string::max_size() - 2** (2<sup>32</sup> - 2 (4294967294) for most)
+1. Maximum message size:  **std::string::max_size() - 2** (2<sup>32</sup> - 3 (4294967293) for most systems)
 
 # Installation
 
