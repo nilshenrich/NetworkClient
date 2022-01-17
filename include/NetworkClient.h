@@ -219,6 +219,16 @@ namespace networking
             return -1;
         }
 
+        // Check if the port number is valid
+        if (1 > serverPort || 65535 < serverPort)
+        {
+#ifdef DEVELOP
+            cerr << typeid(this).name() << "::" << __func__ << ": The port " << serverPort << " couldn't be used" << endl;
+#endif // DEVELOP
+
+            return NETWORKCLIENT_ERROR_START_WRONG_PORT;
+        }
+
         // Initialize the client
         // If initialization fails, return with error
         int initCode{init(pathToCaCert, pathToCert, pathToPrivKey)};
