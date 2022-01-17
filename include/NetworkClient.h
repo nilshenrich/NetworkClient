@@ -104,6 +104,13 @@ namespace networking
          */
         bool sendMsg(const std::string &msg);
 
+        /**
+         * @brief Return if client is running
+         * 
+         * @return bool (true if running, false if not)
+         */
+        bool isRunning() const;
+
     protected:
         /**
          * @brief Initialize the client.
@@ -389,6 +396,12 @@ namespace networking
                 }
             }
         }
+    }
+
+    template <class SocketType, class SocketDeleter>
+    bool NetworkClient<SocketType, SocketDeleter>::isRunning() const
+    {
+        return running;
     }
 }
 

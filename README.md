@@ -159,6 +159,12 @@ But there are some further methods worth knowing about.
     ```
     Please make sure to only use **TcpClient::sendMsg()** for TCP connections and **TlsClient::sendMsg()** for TLS connection.
 
+1. isRunning():
+
+    The **isRunning**-method returns the running flag of the NetworkClient.\
+    **True** means: *The client is running*\
+    **False** means: *The client is not running*
+
 # Example
 
 This repository contains a small example to show the usage of this package. It creates two client, one using unsecure TCP, the other using ecrypted and two-way-authenticated TLS (two-way authentication means, the client authenticates itself with a CA-signed certificate ad forces the server to also authenticate itself with his own CA-signed certificate).\
