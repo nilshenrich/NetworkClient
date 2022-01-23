@@ -68,10 +68,7 @@ namespace networking
     {
     public:
         NetworkClient(){};
-        virtual ~NetworkClient()
-        {
-            stop();
-        };
+        virtual ~NetworkClient() {}
 
         /**
        * @brief Start the client and connects to the server.
