@@ -42,7 +42,7 @@ namespace networking
          * 
          * @return int* 
          */
-        int connectionInit(int *socket) override final;
+        int *connectionInit() override final;
 
         /**
          * @brief Read raw data from the unencrypted TCP socket

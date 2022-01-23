@@ -117,7 +117,7 @@ void TlsClient::deinit()
     return;
 }
 
-int TlsClient::connectionInit(SSL *socket)
+SSL *TlsClient::connectionInit()
 {
     // Create new TLS channel (Return nullptr if failed)
     SSL *tlsSocket{SSL_new(clientContext)};
@@ -127,7 +127,7 @@ int TlsClient::connectionInit(SSL *socket)
         cerr << typeid(this).name() << "::" << __func__ << ": Error when creating new TLS channel" << endl;
 #endif // DEVELOP
 
-        return NETWORKCLIENT_ERROR_START_CREATE_TLS;
+        return nullptr;
     }
 
     // Bind the TLS channel to the TCP socket (Return nullptr if failed)
@@ -137,7 +137,7 @@ int TlsClient::connectionInit(SSL *socket)
         cerr << typeid(this).name() << "::" << __func__ << ": Error when binding the TLS channel to the TCP socket" << endl;
 #endif // DEVELOP
 
-        return NETWORKCLIENT_ERROR_START_BIND_TLS;
+        return nullptr;
     }
 
     // Do TLS handshake (Return nullptr if failed)
@@ -147,14 +147,14 @@ int TlsClient::connectionInit(SSL *socket)
         cerr << typeid(this).name() << "::" << __func__ << ": Error when doing TLS handshake" << endl;
 #endif // DEVELOP
 
-        return NETWORKCLIENT_ERROR_START_DO_HANDSHAKE;
+        return nullptr;
     }
 
 #ifdef DEVELOP
     cout << typeid(this).name() << "::" << __func__ << ": Enrypted connection to server established" << endl;
 #endif // DEVELOP
 
-    return NETWORKCLIENT_START_OK;
+    return tlsSocket;
 }
 
 string TlsClient::readMsg()
