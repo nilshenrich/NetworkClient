@@ -28,8 +28,7 @@ namespace networking
         NETWORKCLIENT_ERROR_START_CREATE_SOCKET = 40,   // Client could not start because of TCP socket creation error
         NETWORKCLIENT_ERROR_START_SET_SOCKET_OPT = 41,  // Client could not start because of TCP socket options error
         NETWORKCLIENT_ERROR_START_CONNECT = 50,         // Client could not start because of TCP socket connection error
-        NETWORKCLIENT_ERROR_START_DO_HANDSHAKE = 60,    // Client could not start because of TLS handshake error (server side)
-        NETWORKCLIENT_ERROR_START_VERIFY_HANDSHAKE = 61 // Client could not start because of TLS handshake error (client side)
+        NETWORKCLIENT_ERROR_START_CONNECT_INIT = 60,    // Client could not start because of an error while initializing the connection
     };
 
     enum : char

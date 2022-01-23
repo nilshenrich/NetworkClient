@@ -284,7 +284,7 @@ namespace networking
         if (!clientSocket)
         {
             stop();
-            return NETWORKCLIENT_ERROR_START_DO_HANDSHAKE;
+            return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
         }
 
         // Receive incoming data from the server infinitely in the background while the client is running
