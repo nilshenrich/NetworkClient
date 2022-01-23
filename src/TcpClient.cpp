@@ -25,9 +25,10 @@ void TcpClient::deinit()
     return;
 }
 
-int *TcpClient::connectionInit()
+int TcpClient::connectionInit(int *socket)
 {
-    return &tcpSocket;
+    socket = &tcpSocket;
+    return NETWORKCLIENT_START_OK;
 }
 
 string TcpClient::readMsg()

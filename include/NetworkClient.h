@@ -134,7 +134,7 @@ namespace networking
          * 
          * @return SocketType* 
          */
-        virtual SocketType *connectionInit() = 0;
+        virtual int connectionInit(SocketType *socket) = 0;
 
         /**
          * @brief Read raw received data from the server connection.
@@ -280,11 +280,11 @@ namespace networking
 
         // Initialize the TCP connection to the server
         // If initialization fails, stop client and return with error
-        clientSocket = connectionInit();
-        if (!clientSocket)
+        int init{connectionInit(clientSocket)};
+        if (init)
         {
             stop();
-            return NETWORKCLIENT_ERROR_START_DO_HANDSHAKE;
+            return init;
         }
 
         // Receive incoming data from the server infinitely in the background while the client is running

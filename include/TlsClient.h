@@ -62,7 +62,7 @@ namespace networking
          * 
          * @return SSL* 
          */
-        SSL *connectionInit() override final;
+        int connectionInit(SSL *socket) override final;
 
         /**
          * @brief Read raw data from the encrypted TLS socket
