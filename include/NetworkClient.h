@@ -19,8 +19,10 @@
 #endif // DEVELOP
 
 #include <string>
+#include <vector>
 #include <cstring>
 #include <thread>
+#include <mutex>
 #include <memory>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -55,6 +57,33 @@ namespace networking
         // Disallow copy
         NetworkClient_error(const NetworkClient_error &) = delete;
         NetworkClient_error &operator=(const NetworkClient_error &) = delete;
+    };
+
+    /**
+     * @brief Class to manage running flag in threds.
+     * 
+     */
+    class NetworkClient_running_manager
+    {
+    public:
+        NetworkClient_running_manager(bool &flag) : flag{flag}
+        {
+            flag = true;
+        }
+        virtual ~NetworkClient_running_manager()
+        {
+            flag = false;
+        }
+
+    private:
+        bool &flag;
+
+        // Delete default constructor
+        NetworkClient_running_manager() = delete;
+
+        // Disallow copy
+        NetworkClient_running_manager(const NetworkClient_running_manager &) = delete;
+        NetworkClient_running_manager &operator=(const NetworkClient_running_manager &) = delete;
     };
 
     /**
@@ -169,7 +198,7 @@ namespace networking
         int tcpSocket;
         SocketType *clientSocket{nullptr};
 
-        // MAximum package size for receiving data
+        // Maximum package size for receiving data
         const static int MAXIMUM_RECEIVE_PACKAGE_SIZE{16384};
 
     private:
@@ -189,6 +218,10 @@ namespace networking
 
         // Thread for receiving data from the server
         std::thread recHandler{};
+
+        // All working threads and their running status
+        std::vector<std::thread> workHandlers;
+        std::vector<std::unique_ptr<bool>> workHandlersRunning;
 
         // Disallow copy
         NetworkClient(const NetworkClient &) = delete;
@@ -365,12 +398,9 @@ namespace networking
                 // Stop the client
                 running = false;
 
-                // Block the TCP socket to abort receiving process
-                if (shutdown(tcpSocket, SHUT_RDWR))
-                    return;
-
-                // Close the TCP socket
-                close(tcpSocket);
+                // Wait for all work handlers to finish
+                for (auto &it : workHandlers)
+                    it.join();
 
                 // Deinitialize the client
                 deinit();
@@ -393,7 +423,35 @@ namespace networking
 #ifdef DEVELOP
                     cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
 #endif // DEVELOP
-                    thread{&NetworkClient::workOnMessage, this, move(buffer)}.detach();
+                    {
+                        unique_ptr<bool> workRunning{new bool{true}};
+                        thread work_t{[this, &buffer](bool *workRunning_p)
+                                      {
+                                          // Mark thread as running
+                                          NetworkClient_running_manager running_mgr{*workRunning_p};
+
+                                          // Run code to handle the incoming message
+                                          workOnMessage(move(buffer));
+                                      },
+                                      workRunning.get()};
+
+                        // Remove all finished work handlers from the vector
+                        size_t workHandlers_s{workHandlersRunning.size()};
+                        for (size_t i{0}; i < workHandlers_s; i += 1)
+                        {
+                            if (!*workHandlersRunning[i].get())
+                            {
+                                workHandlers[i].join();
+                                workHandlers.erase(workHandlers.begin() + i);
+                                workHandlersRunning.erase(workHandlersRunning.begin() + i);
+                                i -= 1;
+                                workHandlers_s -= 1;
+                            }
+                        }
+
+                        workHandlers.push_back(move(work_t));
+                        workHandlersRunning.push_back(move(workRunning));
+                    }
                     break;
 
                 // Middle of message -> append character to buffer

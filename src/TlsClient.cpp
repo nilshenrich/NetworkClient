@@ -10,7 +10,7 @@ TlsClient::TlsClient()
 
 TlsClient::~TlsClient()
 {
-    //dtor
+    stop();
 }
 
 int TlsClient::init(const char *const pathToCaCert,
