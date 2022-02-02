@@ -402,6 +402,14 @@ namespace networking
                 for (auto &it : workHandlers)
                     it.join();
 
+                // Block the TCP socket to abort receiving process
+                // If shutdown failed, abort stop here
+                if (shutdown(tcpSocket, SHUT_RDWR))
+                    return;
+
+                // Close the TCP socket
+                close(tcpSocket);
+
                 // Deinitialize the client
                 deinit();
 
