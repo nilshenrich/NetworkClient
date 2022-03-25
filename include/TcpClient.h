@@ -8,14 +8,14 @@ namespace networking
     class TcpClient : public NetworkClient<int>
     {
     public:
-        TcpClient();
+        TcpClient(char delimiter = '\n');
         virtual ~TcpClient();
 
         /**
          * @brief Do some stuff when a new message is received
          * This method is abstract and must be implemented by derived classes
-         * 
-         * @param tcpMsgFromServer 
+         *
+         * @param tcpMsgFromServer
          */
         virtual void workOnMessage_TcpClient(const std::string tcpMsgFromServer) = 0;
 
@@ -23,8 +23,8 @@ namespace networking
         /**
          * @brief Initialize the client
          * Do nothing for TCP client
-         * 
-         * @return int 
+         *
+         * @return int
          */
         int init(const char *const,
                  const char *const,
@@ -39,31 +39,31 @@ namespace networking
         /**
          * @brief Initialize the connection
          * Just return pointer to the TCP socket
-         * 
-         * @return int* 
+         *
+         * @return int*
          */
         int *connectionInit() override final;
 
         /**
          * @brief Read raw data from the unencrypted TCP socket
-         * 
-         * @return std::string 
+         *
+         * @return std::string
          */
         std::string readMsg() override final;
 
         /**
          * @brief Send raw data to the unencrypted TCP socket
-         * 
-         * @param msg 
-         * @return true 
-         * @return bool 
+         *
+         * @param msg
+         * @return true
+         * @return bool
          */
         bool writeMsg(const std::string &msg) override final;
 
         /**
          * @brief Just call the special receive handler for TCP (wotkOnMessage_TcpClient)
-         * 
-         * @param msg 
+         *
+         * @param msg
          */
         void workOnMessage(const std::string msg) override final;
 

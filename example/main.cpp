@@ -4,9 +4,9 @@
  * @brief Example how to use the networking library
  * @version 1.0
  * @date 2022-01-07
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 
 #include <iostream>
@@ -23,7 +23,7 @@ class ExampleClient : private TcpClient, private TlsClient
 {
 public:
     // Constructor and destructor
-    ExampleClient() {}
+    ExampleClient() : TcpClient{'\x00'}, TlsClient{'\x00'} {}
     virtual ~ExampleClient() {}
 
     // Start TCP and TLS client

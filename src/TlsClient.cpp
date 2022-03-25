@@ -3,10 +3,7 @@
 using namespace std;
 using namespace networking;
 
-TlsClient::TlsClient()
-{
-    //ctor
-}
+TlsClient::TlsClient(char delimiter) : NetworkClient(delimiter) {}
 
 TlsClient::~TlsClient()
 {
