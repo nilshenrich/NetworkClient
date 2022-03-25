@@ -168,6 +168,10 @@ string TlsClient::readMsg()
 
 bool TlsClient::writeMsg(const string &msg)
 {
+#ifdef DEVELOP
+    cout << typeid(this).name() << "::" << __func__ << ": Send to server: " << msg << endl;
+#endif // DEVELOP
+
     // Get size of message to send
     const int lenMsg{(int)msg.size()};
 

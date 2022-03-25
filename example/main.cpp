@@ -73,13 +73,13 @@ private:
     // Override abstract methods
     void workOnMessage_TcpClient(const std::string tcpMsgFromServer)
     {
-        cout << "Message from TCP client: " << tcpMsgFromServer << endl;
+        cout << "Message from TCP server: " << tcpMsgFromServer << endl;
         return;
     }
 
     void workOnMessage_TlsClient(const std::string tlsMsgFromServer)
     {
-        cout << "Message from TLS client: " << tlsMsgFromServer << endl;
+        cout << "Message from TLS server: " << tlsMsgFromServer << endl;
         return;
     }
 };
