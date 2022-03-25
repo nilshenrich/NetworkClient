@@ -5,7 +5,7 @@ using namespace networking;
 
 TcpClient::TcpClient()
 {
-    //ctor
+    // ctor
 }
 
 TcpClient::~TcpClient()
@@ -50,6 +50,10 @@ void TcpClient::workOnMessage(const string msg)
 
 bool TcpClient::writeMsg(const string &msg)
 {
+#ifdef DEVELOP
+    cout << typeid(this).name() << "::" << __func__ << ": Send to server: " << msg << endl;
+#endif // DEVELOP
+
     const size_t lenMsg{msg.size()};
     return send(tcpSocket, msg.c_str(), lenMsg, 0) == (ssize_t)lenMsg;
 }
