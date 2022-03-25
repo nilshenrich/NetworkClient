@@ -6,9 +6,9 @@
  * When compiling with the -DDEBUG flag, the class will print out all received messages to the console.
  * @version 1.0
  * @date 2021-12-28
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 
 #ifndef NETWORKCLIENT_H
@@ -35,8 +35,8 @@
 namespace networking
 {
     /**
-    * @brief Exception class for the NetworkClient class.
-    */
+     * @brief Exception class for the NetworkClient class.
+     */
     class NetworkClient_error : public std::exception
     {
     public:
@@ -61,7 +61,7 @@ namespace networking
 
     /**
      * @brief Class to manage running flag in threds.
-     * 
+     *
      */
     class NetworkClient_running_manager
     {
@@ -87,29 +87,29 @@ namespace networking
     };
 
     /**
-    * @brief Template class for the NetworkClient class.
-    * 
-    * @tparam SocketType 
-    * @tparam SocketDeleter 
-    */
+     * @brief Template class for the NetworkClient class.
+     *
+     * @tparam SocketType
+     * @tparam SocketDeleter
+     */
     template <class SocketType, class SocketDeleter = std::default_delete<SocketType>>
     class NetworkClient
     {
     public:
-        NetworkClient(){};
+        NetworkClient(char delimiter = '\n') : DELIMITER{delimiter} {}
         virtual ~NetworkClient() {}
 
         /**
-       * @brief Start the client and connects to the server.
-       * If connection to listener succeeds, this method returns NETWORKCLIENT_START_OK, otherwise it returns an error code.
-       * 
-       * @param serverIp 
-       * @param serverPort 
-       * @param pathToCaCert 
-       * @param pathToCert 
-       * @param pathToPrivKey 
-       * @return int 
-       */
+         * @brief Start the client and connects to the server.
+         * If connection to listener succeeds, this method returns NETWORKCLIENT_START_OK, otherwise it returns an error code.
+         *
+         * @param serverIp
+         * @param serverPort
+         * @param pathToCaCert
+         * @param pathToCert
+         * @param pathToPrivKey
+         * @return int
+         */
         int start(const std::string &serverIp,
                   const int serverPort,
                   const char *const pathToCaCert = nullptr,
@@ -123,16 +123,16 @@ namespace networking
 
         /**
          * @brief Send a message to the server if connected.
-         * 
-         * @param msg 
-         * @return true 
-         * @return false 
+         *
+         * @param msg
+         * @return true
+         * @return false
          */
         bool sendMsg(const std::string &msg);
 
         /**
          * @brief Return if client is running
-         * 
+         *
          * @return bool (true if running, false if not)
          */
         bool isRunning() const;
@@ -141,11 +141,11 @@ namespace networking
         /**
          * @brief Initialize the client.
          * This method is abstract and must be implemented by derived classes.
-         * 
-         * @param pathToCaCert 
-         * @param pathToCert 
-         * @param pathToPrivKey 
-         * @return int 
+         *
+         * @param pathToCaCert
+         * @param pathToCert
+         * @param pathToPrivKey
+         * @return int
          */
         virtual int init(const char *const pathToCaCert,
                          const char *const pathToCert,
@@ -160,8 +160,8 @@ namespace networking
         /**
          * @brief Initialize the connection to the server.
          * This method is abstract and must be implemented by derived classes.
-         * 
-         * @return SocketType* 
+         *
+         * @return SocketType*
          */
         virtual SocketType *connectionInit() = 0;
 
@@ -169,8 +169,8 @@ namespace networking
          * @brief Read raw received data from the server connection.
          * This method is expected to return the received data as a string with blocking read (Empty string means failure).
          * This method is abstract and must be implemented by derived classes.
-         * 
-         * @return std::string 
+         *
+         * @return std::string
          */
         virtual std::string readMsg() = 0;
 
@@ -178,10 +178,10 @@ namespace networking
          * @brief Write raw data to the server connection.
          * This method is expected to return true if the data was written successfully, otherwise false.
          * This method is abstract and must be implemented by derived classes.
-         * 
-         * @param msg 
-         * @return true 
-         * @return false 
+         *
+         * @param msg
+         * @return true
+         * @return false
          */
         virtual bool writeMsg(const std::string &msg) = 0;
 
@@ -189,8 +189,8 @@ namespace networking
          * @brief Do some stuff when a new message is received from the server.
          * This method is called automatically as soon as a new message is received from the server.
          * This method is abstract and must be implemented by derived classes.
-         * 
-         * @param msg 
+         *
+         * @param msg
          */
         virtual void workOnMessage(const std::string msg) = 0;
 
@@ -222,6 +222,9 @@ namespace networking
         // All working threads and their running status
         std::vector<std::thread> workHandlers;
         std::vector<std::unique_ptr<bool>> workHandlersRunning;
+
+        // Delimiter for the message framing (incoming and outgoing) (default is '\n')
+        const char DELIMITER;
 
         // Disallow copy
         NetworkClient(const NetworkClient &) = delete;
@@ -367,7 +370,7 @@ namespace networking
 
         // Send the message to the server with leading and trailing characters to indicate the message length
         if (running)
-            return writeMsg(string{NETWORKCLIENT_CHAR_TRANSFER_START} + msg + string{NETWORKCLIENT_CHAR_TRANSFER_END});
+            return writeMsg(msg + string{DELIMITER});
 
 #ifdef DEVELOP
         cerr << typeid(this).name() << "::" << __func__ << ": Client not running" << endl;
@@ -419,54 +422,46 @@ namespace networking
             // The real message is between the leading and trailing characters
             for (char c : msg)
             {
-                switch (c)
-                {
-                // Begin of message -> clear buffer
-                case NETWORKCLIENT_CHAR_TRANSFER_START:
-                    buffer.clear();
-                    break;
-
                 // End of message -> send buffer to the message handler
-                case NETWORKCLIENT_CHAR_TRANSFER_END:
+                if (DELIMITER == c)
+                {
 #ifdef DEVELOP
                     cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
 #endif // DEVELOP
+
+                    unique_ptr<bool> workRunning{new bool{true}};
+                    thread work_t{[this](bool *workRunning_p, string buffer)
+                                  {
+                                      // Mark thread as running
+                                      NetworkClient_running_manager running_mgr{*workRunning_p};
+
+                                      // Run code to handle the incoming message
+                                      workOnMessage(move(buffer));
+
+                                      return;
+                                  },
+                                  workRunning.get(), move(buffer)};
+
+                    // Remove all finished work handlers from the vector
+                    size_t workHandlers_s{workHandlersRunning.size()};
+                    for (size_t i{0}; i < workHandlers_s; i += 1)
                     {
-                        unique_ptr<bool> workRunning{new bool{true}};
-                        thread work_t{[this, &buffer](bool *workRunning_p)
-                                      {
-                                          // Mark thread as running
-                                          NetworkClient_running_manager running_mgr{*workRunning_p};
-
-                                          // Run code to handle the incoming message
-                                          workOnMessage(move(buffer));
-                                      },
-                                      workRunning.get()};
-
-                        // Remove all finished work handlers from the vector
-                        size_t workHandlers_s{workHandlersRunning.size()};
-                        for (size_t i{0}; i < workHandlers_s; i += 1)
+                        if (!*workHandlersRunning[i].get())
                         {
-                            if (!*workHandlersRunning[i].get())
-                            {
-                                workHandlers[i].join();
-                                workHandlers.erase(workHandlers.begin() + i);
-                                workHandlersRunning.erase(workHandlersRunning.begin() + i);
-                                i -= 1;
-                                workHandlers_s -= 1;
-                            }
+                            workHandlers[i].join();
+                            workHandlers.erase(workHandlers.begin() + i);
+                            workHandlersRunning.erase(workHandlersRunning.begin() + i);
+                            i -= 1;
+                            workHandlers_s -= 1;
                         }
-
-                        workHandlers.push_back(move(work_t));
-                        workHandlersRunning.push_back(move(workRunning));
                     }
-                    break;
 
-                // Middle of message -> append character to buffer
-                default:
-                    buffer.push_back(c);
-                    break;
+                    workHandlers.push_back(move(work_t));
+                    workHandlersRunning.push_back(move(workRunning));
                 }
+                // Middle of message -> append character to buffer
+                else
+                    buffer.push_back(c);
             }
         }
     }
