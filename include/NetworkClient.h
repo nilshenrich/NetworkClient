@@ -19,8 +19,10 @@
 #endif // DEVELOP
 
 #include <string>
+#include <vector>
 #include <cstring>
 #include <thread>
+#include <mutex>
 #include <memory>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -58,6 +60,33 @@ namespace networking
     };
 
     /**
+     * @brief Class to manage running flag in threds.
+     * 
+     */
+    class NetworkClient_running_manager
+    {
+    public:
+        NetworkClient_running_manager(bool &flag) : flag{flag}
+        {
+            flag = true;
+        }
+        virtual ~NetworkClient_running_manager()
+        {
+            flag = false;
+        }
+
+    private:
+        bool &flag;
+
+        // Delete default constructor
+        NetworkClient_running_manager() = delete;
+
+        // Disallow copy
+        NetworkClient_running_manager(const NetworkClient_running_manager &) = delete;
+        NetworkClient_running_manager &operator=(const NetworkClient_running_manager &) = delete;
+    };
+
+    /**
     * @brief Template class for the NetworkClient class.
     * 
     * @tparam SocketType 
@@ -68,10 +97,7 @@ namespace networking
     {
     public:
         NetworkClient(){};
-        virtual ~NetworkClient()
-        {
-            stop();
-        };
+        virtual ~NetworkClient() {}
 
         /**
        * @brief Start the client and connects to the server.
@@ -103,6 +129,13 @@ namespace networking
          * @return false 
          */
         bool sendMsg(const std::string &msg);
+
+        /**
+         * @brief Return if client is running
+         * 
+         * @return bool (true if running, false if not)
+         */
+        bool isRunning() const;
 
     protected:
         /**
@@ -165,7 +198,7 @@ namespace networking
         int tcpSocket;
         SocketType *clientSocket{nullptr};
 
-        // MAximum package size for receiving data
+        // Maximum package size for receiving data
         const static int MAXIMUM_RECEIVE_PACKAGE_SIZE{16384};
 
     private:
@@ -185,6 +218,10 @@ namespace networking
 
         // Thread for receiving data from the server
         std::thread recHandler{};
+
+        // All working threads and their running status
+        std::vector<std::thread> workHandlers;
+        std::vector<std::unique_ptr<bool>> workHandlersRunning;
 
         // Disallow copy
         NetworkClient(const NetworkClient &) = delete;
@@ -210,6 +247,16 @@ namespace networking
 #endif // DEVELOP
 
             return -1;
+        }
+
+        // Check if the port number is valid
+        if (1 > serverPort || 65535 < serverPort)
+        {
+#ifdef DEVELOP
+            cerr << typeid(this).name() << "::" << __func__ << ": The port " << serverPort << " couldn't be used" << endl;
+#endif // DEVELOP
+
+            return NETWORKCLIENT_ERROR_START_WRONG_PORT;
         }
 
         // Initialize the client
@@ -270,7 +317,7 @@ namespace networking
         if (!clientSocket)
         {
             stop();
-            return NETWORKCLIENT_ERROR_START_DO_HANDSHAKE;
+            return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
         }
 
         // Receive incoming data from the server infinitely in the background while the client is running
@@ -351,7 +398,12 @@ namespace networking
                 // Stop the client
                 running = false;
 
+                // Wait for all work handlers to finish
+                for (auto &it : workHandlers)
+                    it.join();
+
                 // Block the TCP socket to abort receiving process
+                // If shutdown failed, abort stop here
                 if (shutdown(tcpSocket, SHUT_RDWR))
                     return;
 
@@ -379,7 +431,35 @@ namespace networking
 #ifdef DEVELOP
                     cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
 #endif // DEVELOP
-                    thread{&NetworkClient::workOnMessage, this, move(buffer)}.detach();
+                    {
+                        unique_ptr<bool> workRunning{new bool{true}};
+                        thread work_t{[this, &buffer](bool *workRunning_p)
+                                      {
+                                          // Mark thread as running
+                                          NetworkClient_running_manager running_mgr{*workRunning_p};
+
+                                          // Run code to handle the incoming message
+                                          workOnMessage(move(buffer));
+                                      },
+                                      workRunning.get()};
+
+                        // Remove all finished work handlers from the vector
+                        size_t workHandlers_s{workHandlersRunning.size()};
+                        for (size_t i{0}; i < workHandlers_s; i += 1)
+                        {
+                            if (!*workHandlersRunning[i].get())
+                            {
+                                workHandlers[i].join();
+                                workHandlers.erase(workHandlers.begin() + i);
+                                workHandlersRunning.erase(workHandlersRunning.begin() + i);
+                                i -= 1;
+                                workHandlers_s -= 1;
+                            }
+                        }
+
+                        workHandlers.push_back(move(work_t));
+                        workHandlersRunning.push_back(move(workRunning));
+                    }
                     break;
 
                 // Middle of message -> append character to buffer
@@ -389,6 +469,12 @@ namespace networking
                 }
             }
         }
+    }
+
+    template <class SocketType, class SocketDeleter>
+    bool NetworkClient<SocketType, SocketDeleter>::isRunning() const
+    {
+        return running;
     }
 }
 

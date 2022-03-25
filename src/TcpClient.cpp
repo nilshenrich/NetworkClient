@@ -10,7 +10,7 @@ TcpClient::TcpClient()
 
 TcpClient::~TcpClient()
 {
-    //dtor
+    stop();
 }
 
 int TcpClient::init(const char *const,
