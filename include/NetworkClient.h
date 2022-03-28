@@ -430,12 +430,22 @@ namespace networking
                 return;
             }
 
-            // The real message is between the leading and trailing characters
-            for (char c : msg)
+            // Get raw message separated by delimiter
+            size_t delimiter_pos{msg.find(DELIMITER)};
+            if (string::npos == delimiter_pos)
             {
-                // End of message -> send buffer to the message handler
-                if (DELIMITER == c)
+                // If delimiter is not found, the whole packet is part of the message
+                buffer += msg;
+            }
+            else
+            {
+                // If delimiter is found, the message is split into two parts
+                do
                 {
+                    buffer += msg.substr(0, delimiter_pos);
+                    msg = msg.substr(delimiter_pos + 1);
+                    delimiter_pos = msg.find(DELIMITER);
+
 #ifdef DEVELOP
                     cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
 #endif // DEVELOP
@@ -469,10 +479,7 @@ namespace networking
 
                     workHandlers.push_back(move(work_t));
                     workHandlersRunning.push_back(move(workRunning));
-                }
-                // Middle of message -> append character to buffer
-                else
-                    buffer.push_back(c);
+                } while (string::npos != delimiter_pos);
             }
         }
     }
