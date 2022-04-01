@@ -4,9 +4,9 @@
  * @brief Basic definitions for the network client
  * @version 1.0
  * @date 2021-12-28
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 
 #ifndef NETWORKINGDEFINES_H_INCLUDED
@@ -29,12 +29,6 @@ namespace networking
         NETWORKCLIENT_ERROR_START_SET_SOCKET_OPT = 41,  // Client could not start because of TCP socket options error
         NETWORKCLIENT_ERROR_START_CONNECT = 50,         // Client could not start because of TCP socket connection error
         NETWORKCLIENT_ERROR_START_CONNECT_INIT = 60,    // Client could not start because of an error while initializing the connection
-    };
-
-    enum : char
-    {
-        NETWORKCLIENT_CHAR_TRANSFER_START = '\x02',
-        NETWORKCLIENT_CHAR_TRANSFER_END = '\x03'
     };
 }
 

@@ -25,14 +25,14 @@ namespace networking
     class TlsClient : public NetworkClient<SSL, NetworkClient_SSL_Deleter>
     {
     public:
-        TlsClient();
+        TlsClient(char delimiter = '\n');
         virtual ~TlsClient();
 
         /**
          * @brief Do some stuff when a new message is received
          * This method is abstract and must be implemented by derived classes
-         * 
-         * @param tlsMsgFromServer 
+         *
+         * @param tlsMsgFromServer
          */
         virtual void workOnMessage_TlsClient(const std::string tlsMsgFromServer) = 0;
 
@@ -40,11 +40,11 @@ namespace networking
         /**
          * @brief Initialize the client
          * Load certificates and keys
-         * 
-         * @param pathToCaCert 
-         * @param pathToCert 
-         * @param pathToPrivKey 
-         * @return int 
+         *
+         * @param pathToCaCert
+         * @param pathToCert
+         * @param pathToPrivKey
+         * @return int
          */
         int init(const char *const pathToCaCert,
                  const char *const pathToCert,
@@ -59,31 +59,31 @@ namespace networking
         /**
          * @brief Initialize the connection
          * Do handshake with the server and return pointer to the TLS context
-         * 
-         * @return SSL* 
+         *
+         * @return SSL*
          */
         SSL *connectionInit() override final;
 
         /**
          * @brief Read raw data from the encrypted TLS socket
-         * 
-         * @return std::string 
+         *
+         * @return std::string
          */
         std::string readMsg() override final;
 
         /**
          * @brief Write raw data to the encrypted TLS socket
-         * 
-         * @param msg 
-         * @return true 
-         * @return false 
+         *
+         * @param msg
+         * @return true
+         * @return false
          */
         bool writeMsg(const std::string &msg) override final;
 
         /**
          * @brief Just call the special receive handler for TLS (wotkOnMessage_TlsClient)
-         * 
-         * @param msg 
+         *
+         * @param msg
          */
         void workOnMessage(const std::string msg) override final;
 

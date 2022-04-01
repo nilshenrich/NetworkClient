@@ -4,9 +4,9 @@
  * @brief Example how to use the networking library
  * @version 1.0
  * @date 2022-01-07
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 
 #include <iostream>
@@ -23,7 +23,7 @@ class ExampleClient : private TcpClient, private TlsClient
 {
 public:
     // Constructor and destructor
-    ExampleClient() {}
+    ExampleClient() : TcpClient{'\x00'}, TlsClient{'\x00'} {}
     virtual ~ExampleClient() {}
 
     // Start TCP and TLS client
@@ -73,13 +73,13 @@ private:
     // Override abstract methods
     void workOnMessage_TcpClient(const std::string tcpMsgFromServer)
     {
-        cout << "Message from TCP client: " << tcpMsgFromServer << endl;
+        cout << "Message from TCP server: " << tcpMsgFromServer << endl;
         return;
     }
 
     void workOnMessage_TlsClient(const std::string tlsMsgFromServer)
     {
-        cout << "Message from TLS client: " << tlsMsgFromServer << endl;
+        cout << "Message from TLS server: " << tlsMsgFromServer << endl;
         return;
     }
 };
