@@ -23,7 +23,7 @@ class ExampleClient : private TcpClient, private TlsClient
 {
 public:
     // Constructor and destructor
-    ExampleClient() {}
+    ExampleClient() : TcpClient{'\x00'}, TlsClient{'\x00'} {}
     virtual ~ExampleClient() {}
 
     // Start TCP and TLS client

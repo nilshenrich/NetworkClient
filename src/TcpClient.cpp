@@ -3,10 +3,7 @@
 using namespace std;
 using namespace networking;
 
-TcpClient::TcpClient()
-{
-    // ctor
-}
+TcpClient::TcpClient(char delimiter) : NetworkClient(delimiter) {}
 
 TcpClient::~TcpClient()
 {
