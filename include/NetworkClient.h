@@ -445,55 +445,60 @@ namespace networking
             }
 
             // Get raw message separated by delimiter
+            // If delimiter is found, the message is split into two parts
             size_t delimiter_pos{msg.find(DELIMITER)};
-            if (string::npos == delimiter_pos)
+            while (string::npos != delimiter_pos)
             {
-                // If delimiter is not found, the whole packet is part of the message
-                buffer += msg;
-            }
-            else
-            {
-                // If delimiter is found, the message is split into two parts
-                do
-                {
-                    buffer += msg.substr(0, delimiter_pos);
-                    msg = msg.substr(delimiter_pos + 1);
-                    delimiter_pos = msg.find(DELIMITER);
+                string msg_part{msg.substr(0, delimiter_pos)};
+                msg = msg.substr(delimiter_pos + 1);
+                delimiter_pos = msg.find(DELIMITER);
 
+                // Check if the message is too long
+                if (buffer.size() + msg_part.size() > MAXIMUM_MESSAGE_LENGTH)
+                {
 #ifdef DEVELOP
-                    cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
+                    cerr << typeid(this).name() << "::" << __func__ << ": Message from server is too long" << endl;
 #endif // DEVELOP
 
-                    unique_ptr<bool> workRunning{new bool{true}};
-                    thread work_t{[this](bool *workRunning_p, string buffer)
-                                  {
-                                      // Mark thread as running
-                                      NetworkClient_running_manager running_mgr{*workRunning_p};
+                    buffer.clear();
+                    continue;
+                }
 
-                                      // Run code to handle the incoming message
-                                      workOnMessage(move(buffer));
+                buffer += msg_part;
 
-                                      return;
-                                  },
-                                  workRunning.get(), move(buffer)};
+#ifdef DEVELOP
+                cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
+#endif // DEVELOP
 
-                    // Remove all finished work handlers from the vector
-                    size_t workHandlers_s{workHandlersRunning.size()};
-                    for (size_t i{0}; i < workHandlers_s; i += 1)
+                unique_ptr<bool> workRunning{new bool{true}};
+                thread work_t{[this](bool *workRunning_p, string buffer)
+                              {
+                                  // Mark thread as running
+                                  NetworkClient_running_manager running_mgr{*workRunning_p};
+
+                                  // Run code to handle the incoming message
+                                  workOnMessage(move(buffer));
+
+                                  return;
+                              },
+                              workRunning.get(), move(buffer)};
+
+                // Remove all finished work handlers from the vector
+                size_t workHandlers_s{workHandlersRunning.size()};
+                for (size_t i{0}; i < workHandlers_s; i += 1)
+                {
+                    if (!*workHandlersRunning[i].get())
                     {
-                        if (!*workHandlersRunning[i].get())
-                        {
-                            workHandlers[i].join();
-                            workHandlers.erase(workHandlers.begin() + i);
-                            workHandlersRunning.erase(workHandlersRunning.begin() + i);
-                            i -= 1;
-                            workHandlers_s -= 1;
-                        }
+                        workHandlers[i].join();
+                        workHandlers.erase(workHandlers.begin() + i);
+                        workHandlersRunning.erase(workHandlersRunning.begin() + i);
+                        i -= 1;
+                        workHandlers_s -= 1;
                     }
+                }
 
-                    workHandlers.push_back(move(work_t));
-                    workHandlersRunning.push_back(move(workRunning));
-                } while (string::npos != delimiter_pos);
+                workHandlers.push_back(move(work_t));
+                workHandlersRunning.push_back(move(workRunning));
             }
         }
     }
