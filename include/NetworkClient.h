@@ -337,6 +337,10 @@ namespace networking
         // Client is now running
         running = true;
 
+#ifdef DEVELOP
+        cout << typeid(this).name() << "::" << __func__ << ": Client started" << endl;
+#endif // DEVELOP
+
         return NETWORKCLIENT_START_OK;
     }
 
@@ -364,6 +368,10 @@ namespace networking
 
         // Deinitialize the client
         deinit();
+
+#ifdef DEVELOP
+        cout << typeid(this).name() << "::" << __func__ << ": Client stopped" << endl;
+#endif // DEVELOP
 
         return;
     }
