@@ -22,7 +22,6 @@
 #include <vector>
 #include <cstring>
 #include <thread>
-#include <mutex>
 #include <memory>
 #include <limits>
 #include <unistd.h>
