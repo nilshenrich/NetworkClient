@@ -65,6 +65,11 @@ namespace networking
         SSL *connectionInit() override final;
 
         /**
+         * @brief Deinitialize the connection (Shutdown the TLS connection)
+         */
+        void connectionDeinit() override final;
+
+        /**
          * @brief Read raw data from the encrypted TLS socket
          *
          * @return std::string

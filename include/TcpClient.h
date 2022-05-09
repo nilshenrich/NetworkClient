@@ -45,6 +45,11 @@ namespace networking
         int *connectionInit() override final;
 
         /**
+         * @brief Deinitialize the connection (Do nothing)
+         */
+        void connectionDeinit() override final;
+
+        /**
          * @brief Read raw data from the unencrypted TCP socket
          *
          * @return std::string

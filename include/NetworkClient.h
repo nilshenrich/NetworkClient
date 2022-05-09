@@ -166,6 +166,12 @@ namespace networking
         virtual SocketType *connectionInit() = 0;
 
         /**
+         * @brief Deinitialize the connection to the server.
+         * This method is abstract and must be implemented by derived classes.
+         */
+        virtual void connectionDeinit() = 0;
+
+        /**
          * @brief Read raw received data from the server connection.
          * This method is expected to return the received data as a string with blocking read (Empty string means failure).
          * This method is abstract and must be implemented by derived classes.
@@ -352,6 +358,7 @@ namespace networking
         running = false;
 
         // Block the TCP socket to abort receiving process
+        connectionDeinit();
         int shut{shutdown(tcpSocket, SHUT_RDWR)};
 
         // Wait for the background receive thread to finish
