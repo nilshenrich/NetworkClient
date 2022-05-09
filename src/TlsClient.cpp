@@ -154,6 +154,12 @@ SSL *TlsClient::connectionInit()
     return tlsSocket;
 }
 
+void TlsClient::connectionDeinit()
+{
+    SSL_shutdown(clientSocket);
+    return;
+}
+
 string TlsClient::readMsg()
 {
     // Buffer for incoming message

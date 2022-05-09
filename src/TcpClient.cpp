@@ -27,6 +27,11 @@ int *TcpClient::connectionInit()
     return &tcpSocket;
 }
 
+void TcpClient::connectionDeinit()
+{
+    return;
+}
+
 string TcpClient::readMsg()
 {
     // Buffer to store the data received from the server
