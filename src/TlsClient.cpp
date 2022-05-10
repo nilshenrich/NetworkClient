@@ -156,7 +156,10 @@ SSL *TlsClient::connectionInit()
 
 void TlsClient::connectionDeinit()
 {
-    SSL_shutdown(clientSocket);
+    // Shutdown the TLS channel. Memory will be freed automatically on deletion
+    if (clientSocket)
+        SSL_shutdown(clientSocket);
+
     return;
 }
 
