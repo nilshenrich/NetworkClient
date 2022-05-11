@@ -134,6 +134,8 @@ SSL *TlsClient::connectionInit()
         cerr << typeid(this).name() << "::" << __func__ << ": Error when binding the TLS channel to the TCP socket" << endl;
 #endif // DEVELOP
 
+        SSL_free(tlsSocket);
+
         return nullptr;
     }
 
@@ -143,6 +145,8 @@ SSL *TlsClient::connectionInit()
 #ifdef DEVELOP
         cerr << typeid(this).name() << "::" << __func__ << ": Error when doing TLS handshake" << endl;
 #endif // DEVELOP
+
+        SSL_free(tlsSocket);
 
         return nullptr;
     }
