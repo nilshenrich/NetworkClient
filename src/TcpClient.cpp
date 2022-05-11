@@ -24,7 +24,7 @@ void TcpClient::deinit()
 
 int *TcpClient::connectionInit()
 {
-    return &tcpSocket;
+    return new int{tcpSocket};
 }
 
 void TcpClient::connectionDeinit()

@@ -202,7 +202,7 @@ namespace networking
 
         // Client sockets (TCP and user defined)
         int tcpSocket;
-        SocketType *clientSocket{nullptr};
+        std::unique_ptr<SocketType, SocketDeleter> clientSocket{nullptr};
 
         // Maximum package size for receiving data
         const static int MAXIMUM_RECEIVE_PACKAGE_SIZE{16384};
@@ -326,8 +326,8 @@ namespace networking
 
         // Initialize the TCP connection to the server
         // If initialization fails, stop client and return with error
-        clientSocket = connectionInit();
-        if (!clientSocket)
+        clientSocket.reset(connectionInit());
+        if (!clientSocket.get())
         {
             stop();
             return NETWORKCLIENT_ERROR_START_CONNECT_INIT;

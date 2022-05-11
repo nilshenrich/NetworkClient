@@ -157,8 +157,8 @@ SSL *TlsClient::connectionInit()
 void TlsClient::connectionDeinit()
 {
     // Shutdown the TLS channel. Memory will be freed automatically on deletion
-    if (clientSocket)
-        SSL_shutdown(clientSocket);
+    if (clientSocket.get())
+        SSL_shutdown(clientSocket.get());
 
     return;
 }
@@ -169,7 +169,7 @@ string TlsClient::readMsg()
     char buffer[MAXIMUM_RECEIVE_PACKAGE_SIZE]{0};
 
     // Wait for server to send message
-    const int lenMsg{SSL_read(clientSocket, buffer, MAXIMUM_RECEIVE_PACKAGE_SIZE)};
+    const int lenMsg{SSL_read(clientSocket.get(), buffer, MAXIMUM_RECEIVE_PACKAGE_SIZE)};
 
     // Return received message as string (Return empty string if receive failed)
     return string{buffer, 0 < lenMsg ? static_cast<size_t>(lenMsg) : 0UL};
@@ -185,7 +185,7 @@ bool TlsClient::writeMsg(const string &msg)
     const int lenMsg{(int)msg.size()};
 
     // Send message to server (Return false if send failed)
-    return SSL_write(clientSocket, msg.c_str(), lenMsg) == lenMsg;
+    return SSL_write(clientSocket.get(), msg.c_str(), lenMsg) == lenMsg;
 }
 
 void TlsClient::workOnMessage(const string msg)
