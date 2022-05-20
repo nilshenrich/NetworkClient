@@ -152,12 +152,6 @@ namespace networking
                          const char *const pathToPrivKey) = 0;
 
         /**
-         * @brief Deinitialize the client.
-         * This method is abstract and must be implemented by derived classes.
-         */
-        virtual void deinit() = 0;
-
-        /**
          * @brief Initialize the connection to the server.
          * This method is abstract and must be implemented by derived classes.
          *
@@ -372,9 +366,6 @@ namespace networking
         // Close the TCP socket
         close(tcpSocket);
 
-        // Deinitialize the client
-        deinit();
-
 #ifdef DEVELOP
         cout << typeid(this).name() << "::" << __func__ << ": Client stopped" << endl;
 #endif // DEVELOP
@@ -451,9 +442,6 @@ namespace networking
 
                 // Close the TCP socket
                 close(tcpSocket);
-
-                // Deinitialize the client
-                deinit();
 
                 return;
             }
