@@ -6,8 +6,8 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Project name
-project(networkClientTcp VERSION 1.0 DESCRIPTION "Client for TCP")
-project(networkClientTls VERSION 1.0 DESCRIPTION "Client for TLS")
+project(networkClientTcp VERSION 1.1.3 DESCRIPTION "Client for TCP")
+project(networkClientTls VERSION 1.1.3 DESCRIPTION "Client for TLS")
 
 # Include standard directories
 include(GNUInstallDirs)
