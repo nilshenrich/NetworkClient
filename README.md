@@ -20,7 +20,7 @@ The compatible server can be found [here](https://github.com/nilshenrich/Network
 
 This project contains installable C++ libraries for a client on TCP level that can connect to a server and send and receive data asynchronously.
 
-This packge contains two libraries: **libnetworkClientTcp** and **libnetworkClientTls**.\
+This package contains two libraries: **libnetworkClientTcp** and **libnetworkClientTls**.\
 As the names say, **libnetworkClientTcp** creates a simple TCP client with no security. The **libnetworkClientTls** creates a client on TLS level. This means, an established connection is encrypted with the latest compatible TLS version and the server is forced to authenticate itself.
 
 ### Specifications
@@ -137,8 +137,8 @@ In this case, I would recommend a private derivation, because all **TcpClient**/
     *Please note that all parameters of these abstract methods are **const**, so they can't be changed. If you need to do a message adaption, but don't want to copy the whole string for performance reasons, use the **move**-constructor:*
 
     ```cpp
-    std::string modifyable = std::move(tcpMsgFromServer);
-    modifyable += '\n'; // Message modification
+    std::string modifiable = std::move(tcpMsgFromServer);
+    modifiable += '\n'; // Message modification
     ```
 
 After these two steps your program is ready to be compiled.\
@@ -168,7 +168,7 @@ But there are some further methods worth knowing about.
 
 1. sendMsg():
 
-    The **sendMsg**-method sends a message to the server (over TCP or TLS). If the return value is **true**, the sending was succesful, if it is **false**, not.\
+    The **sendMsg**-method sends a message to the server (over TCP or TLS). If the return value is **true**, the sending was successful, if it is **false**, not.\
     As for **start()**, if your class derived from both **TcpClient** and **TlsClient**, the class name must be specified when calling **sendMsg()**:
 
     ```cpp
@@ -186,7 +186,7 @@ But there are some further methods worth knowing about.
 
 ## Example
 
-This repository contains a small example to show the usage of this package. It creates two client, one using unsecure TCP, the other using ecrypted and two-way-authenticated TLS (two-way authentication means, the client authenticates itself with a CA-signed certificate ad forces the server to also authenticate itself with his own CA-signed certificate).\
+This repository contains a small example to show the usage of this package. It creates two client, one using unsecure TCP, the other using encrypted and two-way-authenticated TLS (two-way authentication means, the client authenticates itself with a CA-signed certificate ad forces the server to also authenticate itself with his own CA-signed certificate).\
 This program send two example messages to the server, one over the unencrypted TCP connection and the other over the encrypted TLS connection. It also prints received messages to the screen.
 
 ### Get certificates
@@ -208,6 +208,6 @@ make
 
 ## System requirements
 
-Linux distro based on debian buster or later.
+Linux distribution based on debian buster or later.
 
-The installation process in this project is adapted to debian-based linux distros. But smart guys maybe achieve to make it usable on other sytems (In the end it is just C++ code compilable with C++17 standard or higher).
+The installation process in this project is adapted to debian-based linux distributions. But smart guys maybe achieve to make it usable on other systems (In the end it is just C++ code compilable with C++17 standard or higher).
