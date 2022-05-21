@@ -25,7 +25,7 @@ As the names say, **libnetworkClientTcp** creates a simple TCP client with no se
 
 ### Specifications
 
-1. Maximum message size:  **std::string::max_size() - 2** (2<sup>32</sup> - 3 (4294967293) for most systems)
+1. Maximum message size (Sending and receiving):  **std::string::max_size() - 1** (2³² - 2 (4294967294) for most systems)
 
 ## Installation
 
@@ -56,7 +56,7 @@ As already mentioned in [General explanation](#general-explanation), this projec
     make
     ```
 
-    *To get information printed on the screen, the package can be built in debug mode (Not recommended when installing libraries) by setting the define: __cmake&#160;&#x2011;DCMAKE_BUILD_TYPE=Debug&#160;..__ (Same when compiling example)*
+    *To get information printed on the screen, the package can be built in debug mode (Not recommended when installing libraries) by setting the define: **cmake&#160;&#x2011;DCMAKE_BUILD_TYPE=Debug&#160;..** (Same when compiling example)*
 
 1. To install the created libraries and header files to your system, run
 
@@ -66,7 +66,7 @@ As already mentioned in [General explanation](#general-explanation), this projec
 
 1. (optional) In some systems the library paths need to be updated before **libnetworkClientTcp** and **libnetworkClientTls** can be used. So if you get an error like
 
-    ```
+    ```console
     ./example: error while loading shared libraries: libnetworkClientTcp.so.1: cannot open shared object file: No such file or directory
     ```
 
