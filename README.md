@@ -4,7 +4,7 @@ Installable package to set up a client that can connect to a server on TCP level
 
 The compatible server can be found [here](https://github.com/nilshenrich/NetworkListener).
 
-# Table of contents
+## Table of contents
 
 1. [General explanation](#general-explanation)
     1. [Specifications](#specifications)
@@ -16,18 +16,18 @@ The compatible server can be found [here](https://github.com/nilshenrich/Network
     1. [Run example](#run-example)
 1. [System requirements](#system-requirements)
 
-# General explanation
+## General explanation
 
 This project contains installable C++ libraries for a client on TCP level that can connect to a server and send and receive data asynchronously.
 
 This packge contains two libraries: **libnetworkClientTcp** and **libnetworkClientTls**.\
 As the names say, **libnetworkClientTcp** creates a simple TCP client with no security. The **libnetworkClientTls** creates a client on TLS level. This means, an established connection is encrypted with the latest compatible TLS version and the server is forced to authenticate itself.
 
-## Specifications
+### Specifications
 
 1. Maximum message size:  **std::string::max_size() - 2** (2<sup>32</sup> - 3 (4294967293) for most systems)
 
-# Installation
+## Installation
 
 As already mentioned in [General explanation](#general-explanation), this project contains two installable libraries **libnetworkClientTcp** and **libnetworkClientTls**. These libraries can be installed this way:
 
@@ -78,7 +78,7 @@ As already mentioned in [General explanation](#general-explanation), this projec
 
 Now the package is reade to use. Please see the example for how to use it.
 
-# Usage
+## Usage
 
 *In the subfolder [example](https://github.com/nilshenrich/NetworkClient/blob/main/include/NetworkingDefines.h) you can find a good and simple example program that shows how to use the package*
 
@@ -144,7 +144,7 @@ In this case, I would recommend a private derivation, because all **TcpClient**/
 After these two steps your program is ready to be compiled.\
 But there are some further methods worth knowing about.
 
-## Non-abstract Methods
+### Non-abstract Methods
 
 1. start():
 
@@ -184,16 +184,16 @@ But there are some further methods worth knowing about.
     **True** means: *The client is running*\
     **False** means: *The client is not running*
 
-# Example
+## Example
 
 This repository contains a small example to show the usage of this package. It creates two client, one using unsecure TCP, the other using ecrypted and two-way-authenticated TLS (two-way authentication means, the client authenticates itself with a CA-signed certificate ad forces the server to also authenticate itself with his own CA-signed certificate).\
 This program send two example messages to the server, one over the unencrypted TCP connection and the other over the encrypted TLS connection. It also prints received messages to the screen.
 
-## Get certificates
+### Get certificates
 
 Before the encrypted TLS client can run properly, the needed certificates and private keys need to be copied or linked from the [NetworkListener](https://github.com/nilshenrich/NetworkListener) repository. Please copy the whole folder **keys** from the NetworkListener example directory to the NetworkClient example directory.
 
-## Run example
+### Run example
 
 The example can be compiled the same way as the libraries (Without installing at the end):
 
@@ -206,7 +206,7 @@ make
 ./example
 ```
 
-# System requirements
+## System requirements
 
 Linux distro based on debian buster or later.
 
