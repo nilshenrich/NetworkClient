@@ -22,7 +22,6 @@
 #include <vector>
 #include <cstring>
 #include <thread>
-#include <mutex>
 #include <memory>
 #include <limits>
 #include <unistd.h>
@@ -153,12 +152,6 @@ namespace networking
                          const char *const pathToPrivKey) = 0;
 
         /**
-         * @brief Deinitialize the client.
-         * This method is abstract and must be implemented by derived classes.
-         */
-        virtual void deinit() = 0;
-
-        /**
          * @brief Initialize the connection to the server.
          * This method is abstract and must be implemented by derived classes.
          *
@@ -203,7 +196,7 @@ namespace networking
 
         // Client sockets (TCP and user defined)
         int tcpSocket;
-        SocketType *clientSocket{nullptr};
+        std::unique_ptr<SocketType, SocketDeleter> clientSocket{nullptr};
 
         // Maximum package size for receiving data
         const static int MAXIMUM_RECEIVE_PACKAGE_SIZE{16384};
@@ -327,8 +320,8 @@ namespace networking
 
         // Initialize the TCP connection to the server
         // If initialization fails, stop client and return with error
-        clientSocket = connectionInit();
-        if (!clientSocket)
+        clientSocket.reset(connectionInit());
+        if (!clientSocket.get())
         {
             stop();
             return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
@@ -342,6 +335,10 @@ namespace networking
 
         // Client is now running
         running = true;
+
+#ifdef DEVELOP
+        cout << typeid(this).name() << "::" << __func__ << ": Client started" << endl;
+#endif // DEVELOP
 
         return NETWORKCLIENT_START_OK;
     }
@@ -369,8 +366,9 @@ namespace networking
         // Close the TCP socket
         close(tcpSocket);
 
-        // Deinitialize the client
-        deinit();
+#ifdef DEVELOP
+        cout << typeid(this).name() << "::" << __func__ << ": Client stopped" << endl;
+#endif // DEVELOP
 
         return;
     }
@@ -445,9 +443,6 @@ namespace networking
                 // Close the TCP socket
                 close(tcpSocket);
 
-                // Deinitialize the client
-                deinit();
-
                 return;
             }
 
@@ -507,6 +502,7 @@ namespace networking
                 workHandlers.push_back(move(work_t));
                 workHandlersRunning.push_back(move(workRunning));
             }
+            buffer += msg;
         }
     }
 

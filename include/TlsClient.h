@@ -51,12 +51,6 @@ namespace networking
                  const char *const pathToPrivKey) override final;
 
         /**
-         * @brief Deinitialize the client
-         * Release the TLS context
-         */
-        void deinit() override final;
-
-        /**
          * @brief Initialize the connection
          * Do handshake with the server and return pointer to the TLS context
          *
@@ -93,7 +87,7 @@ namespace networking
         void workOnMessage(const std::string msg) override final;
 
         // TLS context
-        SSL_CTX *clientContext{nullptr};
+        std::unique_ptr<SSL_CTX, void (*)(SSL_CTX *)> clientContext{nullptr, SSL_CTX_free};
 
         // Disallow copy
         TlsClient(const TlsClient &) = delete;

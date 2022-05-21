@@ -17,14 +17,9 @@ int TcpClient::init(const char *const,
     return 0;
 }
 
-void TcpClient::deinit()
-{
-    return;
-}
-
 int *TcpClient::connectionInit()
 {
-    return &tcpSocket;
+    return new int{tcpSocket};
 }
 
 void TcpClient::connectionDeinit()

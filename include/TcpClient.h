@@ -31,12 +31,6 @@ namespace networking
                  const char *const) override final;
 
         /**
-         * @brief Deinitialize the client
-         * Do nothing for TCP client
-         */
-        void deinit() override final;
-
-        /**
          * @brief Initialize the connection
          * Just return pointer to the TCP socket
          *
