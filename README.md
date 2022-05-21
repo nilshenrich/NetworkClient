@@ -15,6 +15,8 @@ The compatible server can be found [here](https://github.com/nilshenrich/Network
     1. [Get certificates](#get-certificates)
     1. [Run example](#run-example)
 1. [System requirements](#system-requirements)
+1. [Known issues](#known-issues)
+    1. [Success on server rejection](#success-on-server-rejection)
 
 ## General explanation
 
@@ -211,3 +213,13 @@ make
 Linux distribution based on debian buster or later.
 
 The installation process in this project is adapted to debian-based linux distributions. But smart guys maybe achieve to make it usable on other systems (In the end it is just C++ code compilable with C++17 standard or higher).
+
+## Known issues
+
+### [Success on server rejection](https://github.com/nilshenrich/NetworkClient/issues/10)
+
+If the TLS client accepts the server certificate, the connection is assumed to be established, no matter if the server accepts the client's certificate or not.
+
+If a client tries to connect to TLS server with a self-signed certificate, the connection is rejected on server side, but the client assumes the connection to be accepted nevertheless.
+
+The good new is, an encrypted connection is not established for real, so messages can't be sent and received.
