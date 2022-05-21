@@ -32,37 +32,46 @@ As the names say, **libnetworkClientTcp** creates a simple TCP client with no se
 As already mentioned in [General explanation](#general-explanation), this project contains two installable libraries **libnetworkClientTcp** and **libnetworkClientTls**. These libraries can be installed this way:
 
 1. Install **build-essential**, **cmake**, **openssl** and **libssl-dev**:
+
     ```console
     sudo apt install build-essential cmake
     ```
+
     **build-essential** contains compilers and libraries to compile C/C++ code on debian-based systems.\
     **cmake** is used to easily create a Makefile.
     - **openssl** is a great toolbox for any kind of tasks about encryption and certification. It is here used to create certificates and keys used for encryption with TLS.
     - **libssl-dev** is the openssl library for C/C++.
 
 1. Create a new folder **build** in the repositories root directory where everything can be compiled to:
+
     ```console
     mkdir build
     ```
 
 1. Navigate to this newly created **build** folder and run the compilation process:
+
     ```console
     cd build
     cmake ..
     make
     ```
+
     *To get information printed on the screen, the package can be built in debug mode (Not recommended when installing libraries) by setting the define: __cmake&#160;&#x2011;DCMAKE_BUILD_TYPE=Debug&#160;..__ (Same when compiling example)*
 
 1. To install the created libraries and header files to your system, run
+
     ```console
     sudo make install
     ```
 
 1. (optional) In some systems the library paths need to be updated before **libnetworkClientTcp** and **libnetworkClientTls** can be used. So if you get an error like
+
     ```
     ./example: error while loading shared libraries: libnetworkClientTcp.so.1: cannot open shared object file: No such file or directory
     ```
+
     please run
+
     ```console
     sudo /sbin/ldconfig
     ```
@@ -78,6 +87,7 @@ To use this package, a new class must be created deriving from **TcpClient** or 
 In this case, I would recommend a private derivation, because all **TcpClient**/**TlsClient** methods are not meant to be used in other places than a direct child class.
 
 1. Create a new class derived from **TcpClient** and **TlsClient**:
+
     ```cpp
     #include "NetworkListener/TcpClient.h"
     #include "NetworkListener/TlsClient.h"
@@ -97,30 +107,35 @@ In this case, I would recommend a private derivation, because all **TcpClient**/
 
 1. Implement abstract methods from base classes
     1. Work on message over TCP (unencrypted):
+
         ```cpp
         void workOnMessage_TcpClient(const std::string tcpMsgFromServer)
         {
             // Do some stuff when message is received
         }
         ```
+
         This method is called automatically as soon as a new message from the server is received over an unencrypted TCP connection.
 
         The **tcpMsgFromServer** parameter contains the received message as raw string.
 
         This method is started in its own thread. So feel free to insert time intensive code here, the client continues running in parallel. But please make sure, your inserted code is thread safe (e.g. use [mutex](https://en.cppreference.com/w/cpp/thread/mutex)), so multiple executions of this method at the same time don't lead to a program crash.
-    
+
     1. Work on message over TLS (encrypted):
+
         ```cpp
         void workOnMessage_TlsClient(const std::string tlsMsgFromServer)
         {
             // Do some stuff when message is received
         }
         ```
+
         This method is just the same as **workOnMessage_TcpClient**, but for receiving an encrypted message over a TLS connection.
 
     **!! Please do never call one of these 2 abstract methods somewhere in your code. These methods are automatically called by the NetworkClient library.**
 
     *Please note that all parameters of these abstract methods are **const**, so they can't be changed. If you need to do a message adaption, but don't want to copy the whole string for performance reasons, use the **move**-constructor:*
+
     ```cpp
     std::string modifyable = std::move(tcpMsgFromServer);
     modifyable += '\n'; // Message modification
@@ -135,6 +150,7 @@ But there are some further methods worth knowing about.
 
     The **start**-method is used to start a TCP or TLS client. When this method returns 0, the client runs in the background. If the return value is other that 0, please see [NetworkingDefines.h](https://github.com/nilshenrich/NetworkClient/blob/main/include/NetworkingDefines.h) for definition of error codes.\
     If your class derived from both **TcpClient** and **TlsClient**, the class name must be specified when calling **start()**:
+
     ```cpp
     TcpClient::start("serverHost", 8081);
     TlsClient::start("serverHost", 8082, "ca_cert.pem", "client_cert.pem", "client_key.pem");
@@ -144,6 +160,7 @@ But there are some further methods worth knowing about.
 
     The **stop**-method stops a running client.\
     As for **start()**, if your class derived from both **TcpClient** and **TlsClient**, the class name must be specified when calling **stop()**:
+
     ```cpp
     TcpClient::stop();
     TlsClient::stop();
@@ -153,10 +170,12 @@ But there are some further methods worth knowing about.
 
     The **sendMsg**-method sends a message to the server (over TCP or TLS). If the return value is **true**, the sending was succesful, if it is **false**, not.\
     As for **start()**, if your class derived from both **TcpClient** and **TlsClient**, the class name must be specified when calling **sendMsg()**:
+
     ```cpp
     TcpClient::sendMsg("example message over TCP");
     TlsClient::sendMsg("example message over TLS");
     ```
+
     Please make sure to only use **TcpClient::sendMsg()** for TCP connections and **TlsClient::sendMsg()** for TLS connection.
 
 1. isRunning():
@@ -177,6 +196,7 @@ Before the encrypted TLS client can run properly, the needed certificates and pr
 ## Run example
 
 The example can be compiled the same way as the libraries (Without installing at the end):
+
 ```console
 cd example
 mkdir build
