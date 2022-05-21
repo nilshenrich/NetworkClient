@@ -502,6 +502,7 @@ namespace networking
                 workHandlers.push_back(move(work_t));
                 workHandlersRunning.push_back(move(workRunning));
             }
+            buffer += msg;
         }
     }
 
