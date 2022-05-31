@@ -96,7 +96,12 @@ namespace networking
     class NetworkClient
     {
     public:
-        NetworkClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1) : DELIMITER{delimiter}, MAXIMUM_MESSAGE_LENGTH{messageMaxLen} {}
+        NetworkClient(char delimiter,
+                      size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1,
+                      int connectionEstablishedTimeout_ms = 1000)
+            : DELIMITER{delimiter},
+              MAXIMUM_MESSAGE_LENGTH{messageMaxLen},
+              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
         virtual ~NetworkClient() {}
 
         /**
@@ -232,6 +237,9 @@ namespace networking
         // Maximum message length (incoming and outgoing) (default is 2³² - 2 = 4294967294)
         const size_t MAXIMUM_MESSAGE_LENGTH;
 
+        // Timeout for waiting for connection established marker (default is 1 second)
+        const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
+
         // Disallow copy
         NetworkClient() = delete;
         NetworkClient(const NetworkClient &) = delete;
@@ -335,8 +343,7 @@ namespace networking
         estConnTimeoutHandler = thread{[this]()
                                        {
                                            // Timeout for establishing connection
-                                           // TODO: Define timeout in NetworkDefines.h
-                                           this_thread::sleep_for(1s);
+                                           this_thread::sleep_for(CONNECTION_ESTABLISHED_TIMEOUT_ms);
 
                                            // If the connection is not established, stop client and return with error
                                            if (!running)
