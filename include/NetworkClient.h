@@ -327,6 +327,19 @@ namespace networking
             return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
         }
 
+        // Wait for incoming message to mark the connection as established
+        // If the connection is not established within the timeout, stop client and return with error
+        string msgEstablished{readMsg()};
+        if (msgEstablished != "+++++ Established connection +++++")
+        {
+#ifdef DEVELOP
+            cerr << typeid(this).name() << "::" << __func__ << ": Wrong message marking the connection to be established: " << msgEstablished << endl;
+#endif // DEVELOP
+
+            stop();
+            return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
+        }
+
         // Receive incoming data from the server infinitely in the background while the client is running
         // If background task already exists, return with error
         if (recHandler.joinable())
