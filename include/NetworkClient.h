@@ -96,7 +96,12 @@ namespace networking
     class NetworkClient
     {
     public:
-        NetworkClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1) : DELIMITER{delimiter}, MAXIMUM_MESSAGE_LENGTH{messageMaxLen} {}
+        NetworkClient(char delimiter,
+                      size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1,
+                      int connectionEstablishedTimeout_ms = 1000)
+            : DELIMITER{delimiter},
+              MAXIMUM_MESSAGE_LENGTH{messageMaxLen},
+              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
         virtual ~NetworkClient() {}
 
         /**
@@ -219,6 +224,9 @@ namespace networking
         // Thread for receiving data from the server
         std::thread recHandler{};
 
+        // timeout thread for waiting for connection established marker
+        std::thread estConnTimeoutHandler{};
+
         // All working threads and their running status
         std::vector<std::thread> workHandlers;
         std::vector<std::unique_ptr<bool>> workHandlersRunning;
@@ -228,6 +236,9 @@ namespace networking
 
         // Maximum message length (incoming and outgoing) (default is 2³² - 2 = 4294967294)
         const size_t MAXIMUM_MESSAGE_LENGTH;
+
+        // Timeout for waiting for connection established marker (default is 1 second)
+        const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
 
         // Disallow copy
         NetworkClient() = delete;
@@ -327,6 +338,43 @@ namespace networking
             return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
         }
 
+        // Wait for incoming message to mark the connection as established
+        // If the connection is not established within the timeout, stop client and return with error
+        estConnTimeoutHandler = thread{[this]()
+                                       {
+                                           // Timeout for establishing connection
+                                           this_thread::sleep_for(CONNECTION_ESTABLISHED_TIMEOUT_ms);
+
+                                           // If the connection is not established, stop client and return with error
+                                           if (!running)
+                                           {
+#ifdef DEVELOP
+                                               cerr << typeid(this).name() << "::" << __func__ << ": Connection to server could not be established" << endl;
+#endif // DEVELOP
+
+                                               // Block the TCP socket to abort receiving process
+                                               // If shutdown failed, abort stop here
+                                               connectionDeinit();
+                                               if (shutdown(tcpSocket, SHUT_RDWR))
+                                                   return;
+
+                                               // Close the TCP socket
+                                               close(tcpSocket);
+
+                                               return;
+                                           }
+                                       }};
+        string msgEstablished{readMsg()};
+        if (msgEstablished != string{1, DELIMITER})
+        {
+#ifdef DEVELOP
+            cerr << typeid(this).name() << "::" << __func__ << ": Wrong message marking the connection to be established: " << msgEstablished << endl;
+#endif // DEVELOP
+
+            stop();
+            return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
+        }
+
         // Receive incoming data from the server infinitely in the background while the client is running
         // If background task already exists, return with error
         if (recHandler.joinable())
@@ -350,6 +398,10 @@ namespace networking
 
         // Stop the client
         running = false;
+
+        // Wait for established connection timeout thread to finish
+        if (estConnTimeoutHandler.joinable())
+            estConnTimeoutHandler.join();
 
         // Block the TCP socket to abort receiving process
         connectionDeinit();
