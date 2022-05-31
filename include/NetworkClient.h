@@ -329,6 +329,26 @@ namespace networking
 
         // Wait for incoming message to mark the connection as established
         // If the connection is not established within the timeout, stop client and return with error
+        // TODO: Join timeout thread in destructor (stop won't work because it is used here)
+        // TODO: Define message in NetworkDefines.h
+        // TODO: Define timeout in NetworkDefines.h
+        thread estabishTimeout_t{[this]()
+                                 {
+                                     // Timeout for establishing connection
+                                     this_thread::sleep_for(1s);
+
+                                     // If the connection is not established, stop client and return with error
+                                     if (!running)
+                                     {
+#ifdef DEVELOP
+                                         cerr << typeid(this).name() << "::" << __func__ << ": Connection to server could not be established" << endl;
+#endif // DEVELOP
+
+                                         stop();
+
+                                         return;
+                                     }
+                                 }};
         string msgEstablished{readMsg()};
         if (msgEstablished != "+++++ Established connection +++++")
         {
@@ -337,6 +357,7 @@ namespace networking
 #endif // DEVELOP
 
             stop();
+            estabishTimeout_t.join();
             return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
         }
 
@@ -348,6 +369,7 @@ namespace networking
 
         // Client is now running
         running = true;
+        estabishTimeout_t.join();
 
 #ifdef DEVELOP
         cout << typeid(this).name() << "::" << __func__ << ": Client started" << endl;
