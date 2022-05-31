@@ -219,6 +219,9 @@ namespace networking
         // Thread for receiving data from the server
         std::thread recHandler{};
 
+        // timeout thread for waiting for connection established marker
+        std::thread estConnTimeoutHandler{};
+
         // All working threads and their running status
         std::vector<std::thread> workHandlers;
         std::vector<std::unique_ptr<bool>> workHandlersRunning;
@@ -329,25 +332,31 @@ namespace networking
 
         // Wait for incoming message to mark the connection as established
         // If the connection is not established within the timeout, stop client and return with error
-        // TODO: Join timeout thread in destructor (stop won't work because it is used here)
-        // TODO: Define timeout in NetworkDefines.h
-        thread estabishTimeout_t{[this]()
-                                 {
-                                     // Timeout for establishing connection
-                                     this_thread::sleep_for(1s);
+        estConnTimeoutHandler = thread{[this]()
+                                       {
+                                           // Timeout for establishing connection
+                                           // TODO: Define timeout in NetworkDefines.h
+                                           this_thread::sleep_for(1s);
 
-                                     // If the connection is not established, stop client and return with error
-                                     if (!running)
-                                     {
+                                           // If the connection is not established, stop client and return with error
+                                           if (!running)
+                                           {
 #ifdef DEVELOP
-                                         cerr << typeid(this).name() << "::" << __func__ << ": Connection to server could not be established" << endl;
+                                               cerr << typeid(this).name() << "::" << __func__ << ": Connection to server could not be established" << endl;
 #endif // DEVELOP
 
-                                         stop();
+                                               // Block the TCP socket to abort receiving process
+                                               // If shutdown failed, abort stop here
+                                               connectionDeinit();
+                                               if (shutdown(tcpSocket, SHUT_RDWR))
+                                                   return;
 
-                                         return;
-                                     }
-                                 }};
+                                               // Close the TCP socket
+                                               close(tcpSocket);
+
+                                               return;
+                                           }
+                                       }};
         string msgEstablished{readMsg()};
         if (msgEstablished != string{1, DELIMITER})
         {
@@ -356,7 +365,6 @@ namespace networking
 #endif // DEVELOP
 
             stop();
-            estabishTimeout_t.join();
             return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
         }
 
@@ -368,7 +376,6 @@ namespace networking
 
         // Client is now running
         running = true;
-        estabishTimeout_t.join();
 
 #ifdef DEVELOP
         cout << typeid(this).name() << "::" << __func__ << ": Client started" << endl;
@@ -384,6 +391,10 @@ namespace networking
 
         // Stop the client
         running = false;
+
+        // Wait for established connection timeout thread to finish
+        if (estConnTimeoutHandler.joinable())
+            estConnTimeoutHandler.join();
 
         // Block the TCP socket to abort receiving process
         connectionDeinit();
