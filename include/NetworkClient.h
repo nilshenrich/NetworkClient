@@ -330,7 +330,6 @@ namespace networking
         // Wait for incoming message to mark the connection as established
         // If the connection is not established within the timeout, stop client and return with error
         // TODO: Join timeout thread in destructor (stop won't work because it is used here)
-        // TODO: Define message in NetworkDefines.h
         // TODO: Define timeout in NetworkDefines.h
         thread estabishTimeout_t{[this]()
                                  {
@@ -350,7 +349,7 @@ namespace networking
                                      }
                                  }};
         string msgEstablished{readMsg()};
-        if (msgEstablished != "+++++ Established connection +++++")
+        if (msgEstablished != string{1, DELIMITER})
         {
 #ifdef DEVELOP
             cerr << typeid(this).name() << "::" << __func__ << ": Wrong message marking the connection to be established: " << msgEstablished << endl;
