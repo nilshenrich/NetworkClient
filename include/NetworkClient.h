@@ -437,6 +437,7 @@ namespace networking
 
                 // Block the TCP socket to abort receiving process
                 // If shutdown failed, abort stop here
+                connectionDeinit();
                 if (shutdown(tcpSocket, SHUT_RDWR))
                     return;
 
