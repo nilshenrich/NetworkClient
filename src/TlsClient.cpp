@@ -3,7 +3,7 @@
 using namespace std;
 using namespace networking;
 
-TlsClient::TlsClient(char delimiter) : NetworkClient(delimiter) {}
+TlsClient::TlsClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms) {}
 
 TlsClient::~TlsClient()
 {

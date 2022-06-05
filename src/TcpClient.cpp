@@ -3,7 +3,7 @@
 using namespace std;
 using namespace networking;
 
-TcpClient::TcpClient(char delimiter) : NetworkClient(delimiter) {}
+TcpClient::TcpClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms) {}
 
 TcpClient::~TcpClient()
 {

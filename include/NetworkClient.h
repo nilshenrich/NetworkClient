@@ -96,9 +96,7 @@ namespace networking
     class NetworkClient
     {
     public:
-        NetworkClient(char delimiter,
-                      size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1,
-                      int connectionEstablishedTimeout_ms = 1000)
+        NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms)
             : DELIMITER{delimiter},
               MAXIMUM_MESSAGE_LENGTH{messageMaxLen},
               CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
