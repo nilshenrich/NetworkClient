@@ -61,7 +61,7 @@ namespace networking
     };
 
     /**
-     * @brief Class to manage running flag in threds.
+     * @brief Class to manage running flag in threads.
      *
      */
     using RunningFlag = std::atomic_bool;
@@ -88,8 +88,8 @@ namespace networking
     /**
      * @brief Template class for the NetworkClient class.
      *
-     * @tparam SocketType
-     * @tparam SocketDeleter
+     * @param SocketType
+     * @param SocketDeleter
      */
     template <class SocketType, class SocketDeleter = std::default_delete<SocketType>>
     class NetworkClient
