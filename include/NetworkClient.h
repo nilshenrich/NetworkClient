@@ -24,6 +24,7 @@
 #include <thread>
 #include <memory>
 #include <limits>
+#include <atomic>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -63,20 +64,18 @@ namespace networking
      * @brief Class to manage running flag in threds.
      *
      */
+    using RunningFlag = std::atomic_bool;
     class NetworkClient_running_manager
     {
     public:
-        NetworkClient_running_manager(bool &flag) : flag{flag}
-        {
-            flag = true;
-        }
+        NetworkClient_running_manager(RunningFlag &flag) : flag{flag} {}
         virtual ~NetworkClient_running_manager()
         {
             flag = false;
         }
 
     private:
-        bool &flag;
+        RunningFlag &flag;
 
         // Delete default constructor
         NetworkClient_running_manager() = delete;
@@ -212,7 +211,7 @@ namespace networking
         void receive();
 
         // Flag to indicate if the client is running
-        bool running{false};
+        RunningFlag running{false};
 
         // Client socket address
         struct sockaddr_in socketAddress
@@ -227,7 +226,7 @@ namespace networking
 
         // All working threads and their running status
         std::vector<std::thread> workHandlers;
-        std::vector<std::unique_ptr<bool>> workHandlersRunning;
+        std::vector<std::unique_ptr<RunningFlag>> workHandlersRunning;
 
         // Delimiter for the message framing (incoming and outgoing) (default is '\n')
         const char DELIMITER;
@@ -523,8 +522,8 @@ namespace networking
                 cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
 #endif // DEVELOP
 
-                unique_ptr<bool> workRunning{new bool{true}};
-                thread work_t{[this](bool *workRunning_p, string buffer)
+                unique_ptr<RunningFlag> workRunning{new RunningFlag{true}};
+                thread work_t{[this](RunningFlag *workRunning_p, string buffer)
                               {
                                   // Mark thread as running
                                   NetworkClient_running_manager running_mgr{*workRunning_p};
