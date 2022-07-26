@@ -109,6 +109,10 @@ int TlsClient::init(const char *const pathToCaCert,
 
 SSL *TlsClient::connectionInit()
 {
+    // Clarification:
+    // No need to shutdown/close/free socket as this is already done in stop()
+    // If connection initialization fails, client is stoped automatically
+
     // Set allowed TLS cipher suites (Only TLSv1.3)
     if (!SSL_CTX_set_ciphersuites(clientContext.get(), "TLS_AES_256_GCM_SHA384"))
     {
