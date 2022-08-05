@@ -24,6 +24,7 @@
 #include <thread>
 #include <memory>
 #include <limits>
+#include <atomic>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -60,23 +61,21 @@ namespace networking
     };
 
     /**
-     * @brief Class to manage running flag in threds.
+     * @brief Class to manage running flag in threads.
      *
      */
+    using RunningFlag = std::atomic_bool;
     class NetworkClient_running_manager
     {
     public:
-        NetworkClient_running_manager(bool &flag) : flag{flag}
-        {
-            flag = true;
-        }
+        NetworkClient_running_manager(RunningFlag &flag) : flag{flag} {}
         virtual ~NetworkClient_running_manager()
         {
             flag = false;
         }
 
     private:
-        bool &flag;
+        RunningFlag &flag;
 
         // Delete default constructor
         NetworkClient_running_manager() = delete;
@@ -89,14 +88,17 @@ namespace networking
     /**
      * @brief Template class for the NetworkClient class.
      *
-     * @tparam SocketType
-     * @tparam SocketDeleter
+     * @param SocketType
+     * @param SocketDeleter
      */
     template <class SocketType, class SocketDeleter = std::default_delete<SocketType>>
     class NetworkClient
     {
     public:
-        NetworkClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1) : DELIMITER{delimiter}, MAXIMUM_MESSAGE_LENGTH{messageMaxLen} {}
+        NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms)
+            : DELIMITER{delimiter},
+              MAXIMUM_MESSAGE_LENGTH{messageMaxLen},
+              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
         virtual ~NetworkClient() {}
 
         /**
@@ -209,7 +211,7 @@ namespace networking
         void receive();
 
         // Flag to indicate if the client is running
-        bool running{false};
+        RunningFlag running{false};
 
         // Client socket address
         struct sockaddr_in socketAddress
@@ -219,15 +221,21 @@ namespace networking
         // Thread for receiving data from the server
         std::thread recHandler{};
 
+        // timeout thread for waiting for connection established marker
+        std::thread estConnTimeoutHandler{};
+
         // All working threads and their running status
         std::vector<std::thread> workHandlers;
-        std::vector<std::unique_ptr<bool>> workHandlersRunning;
+        std::vector<std::unique_ptr<RunningFlag>> workHandlersRunning;
 
         // Delimiter for the message framing (incoming and outgoing) (default is '\n')
         const char DELIMITER;
 
         // Maximum message length (incoming and outgoing) (default is 2³² - 2 = 4294967294)
         const size_t MAXIMUM_MESSAGE_LENGTH;
+
+        // Timeout for waiting for connection established marker (default is 1 second)
+        const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
 
         // Disallow copy
         NetworkClient() = delete;
@@ -327,6 +335,43 @@ namespace networking
             return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
         }
 
+        // Wait for incoming message to mark the connection as established
+        // If the connection is not established within the timeout, stop client and return with error
+        estConnTimeoutHandler = thread{[this]()
+                                       {
+                                           // Timeout for establishing connection
+                                           this_thread::sleep_for(CONNECTION_ESTABLISHED_TIMEOUT_ms);
+
+                                           // If the connection is not established, stop client and return with error
+                                           if (!running)
+                                           {
+#ifdef DEVELOP
+                                               cerr << typeid(this).name() << "::" << __func__ << ": Connection to server could not be established" << endl;
+#endif // DEVELOP
+
+                                               // Block the TCP socket to abort receiving process
+                                               // If shutdown failed, abort stop here
+                                               connectionDeinit();
+                                               if (shutdown(tcpSocket, SHUT_RDWR))
+                                                   return;
+
+                                               // Close the TCP socket
+                                               close(tcpSocket);
+
+                                               return;
+                                           }
+                                       }};
+        string msgEstablished{readMsg()};
+        if (msgEstablished != string{1, DELIMITER})
+        {
+#ifdef DEVELOP
+            cerr << typeid(this).name() << "::" << __func__ << ": Wrong message marking the connection to be established: " << msgEstablished << endl;
+#endif // DEVELOP
+
+            stop();
+            return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
+        }
+
         // Receive incoming data from the server infinitely in the background while the client is running
         // If background task already exists, return with error
         if (recHandler.joinable())
@@ -350,6 +395,10 @@ namespace networking
 
         // Stop the client
         running = false;
+
+        // Wait for established connection timeout thread to finish
+        if (estConnTimeoutHandler.joinable())
+            estConnTimeoutHandler.join();
 
         // Block the TCP socket to abort receiving process
         connectionDeinit();
@@ -437,6 +486,7 @@ namespace networking
 
                 // Block the TCP socket to abort receiving process
                 // If shutdown failed, abort stop here
+                connectionDeinit();
                 if (shutdown(tcpSocket, SHUT_RDWR))
                     return;
 
@@ -472,8 +522,8 @@ namespace networking
                 cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
 #endif // DEVELOP
 
-                unique_ptr<bool> workRunning{new bool{true}};
-                thread work_t{[this](bool *workRunning_p, string buffer)
+                unique_ptr<RunningFlag> workRunning{new RunningFlag{true}};
+                thread work_t{[this](RunningFlag *workRunning_p, string buffer)
                               {
                                   // Mark thread as running
                                   NetworkClient_running_manager running_mgr{*workRunning_p};

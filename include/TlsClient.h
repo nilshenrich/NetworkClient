@@ -25,7 +25,7 @@ namespace networking
     class TlsClient : public NetworkClient<SSL, NetworkClient_SSL_Deleter>
     {
     public:
-        TlsClient(char delimiter = '\n');
+        TlsClient(char delimiter = '\n', size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000);
         virtual ~TlsClient();
 
         /**

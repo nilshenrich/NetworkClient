@@ -8,7 +8,7 @@ namespace networking
     class TcpClient : public NetworkClient<int>
     {
     public:
-        TcpClient(char delimiter = '\n');
+        TcpClient(char delimiter = '\n', size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000);
         virtual ~TcpClient();
 
         /**
