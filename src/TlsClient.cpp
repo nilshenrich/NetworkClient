@@ -159,7 +159,7 @@ SSL *TlsClient::connectionInit()
     }
 
 #ifdef DEVELOP
-    cout << typeid(this).name() << "::" << __func__ << ": Enrypted connection to server established" << endl;
+    cout << typeid(this).name() << "::" << __func__ << ": Encrypted connection to server established" << endl;
 #endif // DEVELOP
 
     return tlsSocket;
