@@ -4,6 +4,8 @@ Installable package to set up a client that can connect to a server on TCP level
 
 The compatible server can be found [here](https://github.com/nilshenrich/NetworkListener).
 
+A test run can be found [here](https://github.com/nilshenrich/NetworkTester/actions)
+
 ## Table of contents
 
 1. [General explanation](#general-explanation)
@@ -16,7 +18,6 @@ The compatible server can be found [here](https://github.com/nilshenrich/Network
     1. [Run example](#run-example)
 1. [System requirements](#system-requirements)
 1. [Known issues](#known-issues)
-    1. [Success on server rejection](#success-on-server-rejection)
 
 ## General explanation
 
@@ -216,10 +217,4 @@ The installation process in this project is adapted to debian-based linux distri
 
 ## Known issues
 
-### [Success on server rejection](https://github.com/nilshenrich/NetworkClient/issues/10)
-
-If the TLS client accepts the server certificate, the connection is assumed to be established, no matter if the server accepts the client's certificate or not.
-
-If a client tries to connect to TLS server with a self-signed certificate, the connection is rejected on server side, but the client assumes the connection to be accepted nevertheless.
-
-The good new is, an encrypted connection is not established for real, so messages can't be sent and received.
+\<no known issues\>
