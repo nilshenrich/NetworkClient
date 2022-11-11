@@ -193,7 +193,7 @@ bool NetworkClient<SocketType, SocketDeleter>::sendMsg(const std::string &msg)
     }
 
     // Check if message is too long
-    if (msg.length() > MAXIMUM_MESSAGE_LENGTH)
+    if (msg.length() > MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION)
     {
 #ifdef DEVELOP
         cerr << typeid(this).name() << "::" << __func__ << ": Message is too long" << endl;
@@ -261,7 +261,7 @@ void NetworkClient<SocketType, SocketDeleter>::receive()
             delimiter_pos = msg.find(DELIMITER_FOR_FRAGMENTATION);
 
             // Check if the message is too long
-            if (buffer.size() + msg_part.size() > MAXIMUM_MESSAGE_LENGTH)
+            if (buffer.size() + msg_part.size() > MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION)
             {
 #ifdef DEVELOP
                 cerr << typeid(this).name() << "::" << __func__ << ": Message from server is too long" << endl;

@@ -97,7 +97,7 @@ namespace networking
     public:
         NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms)
             : DELIMITER_FOR_FRAGMENTATION{delimiter},
-              MAXIMUM_MESSAGE_LENGTH{messageMaxLen},
+              MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
               CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
         virtual ~NetworkClient() {}
 
@@ -232,7 +232,7 @@ namespace networking
         const char DELIMITER_FOR_FRAGMENTATION;
 
         // Maximum message length (incoming and outgoing) (default is 2³² - 2 = 4294967294)
-        const size_t MAXIMUM_MESSAGE_LENGTH;
+        const size_t MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION;
 
         // Timeout for waiting for connection established marker (default is 1 second)
         const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
