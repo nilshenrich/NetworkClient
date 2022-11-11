@@ -25,7 +25,24 @@ namespace networking
     class TlsClient : public NetworkClient<SSL, NetworkClient_SSL_Deleter>
     {
     public:
-        TlsClient(char delimiter = '\n', size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000);
+        /**
+         * @brief Constructor for continuous stream forwarding
+         *
+         * @param os
+         */
+        TlsClient(std::ostream &os = std::cout, int connectionEstablishedTimeout_ms = 1000);
+
+        /**
+         * @brief Constructor for fragmented messages
+         *
+         * @param delimiter
+         * @param messageMaxLen
+         */
+        TlsClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000);
+
+        /**
+         * @brief Destructor
+         */
         virtual ~TlsClient();
 
         /**

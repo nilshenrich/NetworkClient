@@ -3,6 +3,7 @@
 using namespace std;
 using namespace networking;
 
+TlsClient::TlsClient(std::ostream &os, int connectionEstablishedTimeout_ms) : NetworkClient(os, connectionEstablishedTimeout_ms) {}
 TlsClient::TlsClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms) {}
 
 TlsClient::~TlsClient()

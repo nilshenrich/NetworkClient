@@ -117,7 +117,7 @@ int NetworkClient<SocketType, SocketDeleter>::start(
                                        }
                                    }};
     string msgEstablished{readMsg()};
-    if (msgEstablished != string{1, DELIMITER})
+    if (msgEstablished != string{1, DELIMITER_FOR_FRAGMENTATION})
     {
 #ifdef DEVELOP
         cerr << typeid(this).name() << "::" << __func__ << ": Wrong message marking the connection to be established: " << msgEstablished << endl;
@@ -182,29 +182,32 @@ bool NetworkClient<SocketType, SocketDeleter>::sendMsg(const std::string &msg)
 {
     using namespace std;
 
-    // Check if message doesn't contain delimiter
-    if (msg.find(DELIMITER) != string::npos)
+    if (MESSAGE_FRAGMENTATION_ENABLED)
     {
+        // Check if message doesn't contain delimiter
+        if (msg.find(DELIMITER_FOR_FRAGMENTATION) != string::npos)
+        {
 #ifdef DEVELOP
-        cerr << typeid(this).name() << "::" << __func__ << ": Message contains delimiter" << endl;
+            cerr << typeid(this).name() << "::" << __func__ << ": Message contains delimiter" << endl;
 #endif // DEVELOP
 
-        return false;
-    }
+            return false;
+        }
 
-    // Check if message is too long
-    if (msg.length() > MAXIMUM_MESSAGE_LENGTH)
-    {
+        // Check if message is too long
+        if (msg.length() > MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION)
+        {
 #ifdef DEVELOP
-        cerr << typeid(this).name() << "::" << __func__ << ": Message is too long" << endl;
+            cerr << typeid(this).name() << "::" << __func__ << ": Message is too long" << endl;
 #endif // DEVELOP
 
-        return false;
+            return false;
+        }
     }
 
     // Send the message to the server with leading and trailing characters to indicate the message length
     if (running)
-        return writeMsg(msg + string{DELIMITER});
+        return writeMsg(MESSAGE_FRAGMENTATION_ENABLED ? msg + string{DELIMITER_FOR_FRAGMENTATION} : msg);
 
 #ifdef DEVELOP
     cerr << typeid(this).name() << "::" << __func__ << ": Client not running" << endl;
@@ -251,63 +254,74 @@ void NetworkClient<SocketType, SocketDeleter>::receive()
             return;
         }
 
-        // Get raw message separated by delimiter
-        // If delimiter is found, the message is split into two parts
-        size_t delimiter_pos{msg.find(DELIMITER)};
-        while (string::npos != delimiter_pos)
+        // If stream shall be fragmented ...
+        if (MESSAGE_FRAGMENTATION_ENABLED)
         {
-            string msg_part{msg.substr(0, delimiter_pos)};
-            msg = msg.substr(delimiter_pos + 1);
-            delimiter_pos = msg.find(DELIMITER);
-
-            // Check if the message is too long
-            if (buffer.size() + msg_part.size() > MAXIMUM_MESSAGE_LENGTH)
+            // Get raw message separated by delimiter
+            // If delimiter is found, the message is split into two parts
+            size_t delimiter_pos{msg.find(DELIMITER_FOR_FRAGMENTATION)};
+            while (string::npos != delimiter_pos)
             {
-#ifdef DEVELOP
-                cerr << typeid(this).name() << "::" << __func__ << ": Message from server is too long" << endl;
-#endif // DEVELOP
+                string msg_part{msg.substr(0, delimiter_pos)};
+                msg = msg.substr(delimiter_pos + 1);
+                delimiter_pos = msg.find(DELIMITER_FOR_FRAGMENTATION);
 
-                buffer.clear();
-                continue;
-            }
-
-            buffer += msg_part;
-
-#ifdef DEVELOP
-            cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
-#endif // DEVELOP
-
-            unique_ptr<RunningFlag> workRunning{new RunningFlag{true}};
-            thread work_t{[this](RunningFlag *workRunning_p, string buffer)
-                          {
-                              // Mark thread as running
-                              NetworkClient_running_manager running_mgr{*workRunning_p};
-
-                              // Run code to handle the incoming message
-                              workOnMessage(move(buffer));
-
-                              return;
-                          },
-                          workRunning.get(), move(buffer)};
-
-            // Remove all finished work handlers from the vector
-            size_t workHandlers_s{workHandlersRunning.size()};
-            for (size_t i{0}; i < workHandlers_s; i += 1)
-            {
-                if (!*workHandlersRunning[i].get())
+                // Check if the message is too long
+                if (buffer.size() + msg_part.size() > MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION)
                 {
-                    workHandlers[i].join();
-                    workHandlers.erase(workHandlers.begin() + i);
-                    workHandlersRunning.erase(workHandlersRunning.begin() + i);
-                    i -= 1;
-                    workHandlers_s -= 1;
-                }
-            }
+#ifdef DEVELOP
+                    cerr << typeid(this).name() << "::" << __func__ << ": Message from server is too long" << endl;
+#endif // DEVELOP
 
-            workHandlers.push_back(move(work_t));
-            workHandlersRunning.push_back(move(workRunning));
+                    buffer.clear();
+                    continue;
+                }
+
+                buffer += msg_part;
+
+#ifdef DEVELOP
+                cout << typeid(this).name() << "::" << __func__ << ": Received message from server: " << buffer << endl;
+#endif // DEVELOP
+
+                unique_ptr<RunningFlag> workRunning{new RunningFlag{true}};
+                thread work_t{[this](RunningFlag *workRunning_p, string buffer)
+                              {
+                                  // Mark thread as running
+                                  NetworkClient_running_manager running_mgr{*workRunning_p};
+
+                                  // Run code to handle the incoming message
+                                  workOnMessage(move(buffer));
+
+                                  return;
+                              },
+                              workRunning.get(), move(buffer)};
+
+                // Remove all finished work handlers from the vector
+                size_t workHandlers_s{workHandlersRunning.size()};
+                for (size_t i{0}; i < workHandlers_s; i += 1)
+                {
+                    if (!*workHandlersRunning[i].get())
+                    {
+                        workHandlers[i].join();
+                        workHandlers.erase(workHandlers.begin() + i);
+                        workHandlersRunning.erase(workHandlersRunning.begin() + i);
+                        i -= 1;
+                        workHandlers_s -= 1;
+                    }
+                }
+
+                workHandlers.push_back(move(work_t));
+                workHandlersRunning.push_back(move(workRunning));
+            }
+            buffer += msg;
         }
-        buffer += msg;
+
+        // If stream shall be forwarded to continuous out stream ...
+        else
+        {
+            // Just forward incoming message to output stream
+            CONTINUOUS_OUTPUT_STREAM << msg;
+        }
     }
 }
 

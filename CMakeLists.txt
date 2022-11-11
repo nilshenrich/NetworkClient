@@ -6,8 +6,8 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Project name
-project(networkClientTcp VERSION 1.2 DESCRIPTION "Client for TCP")
-project(networkClientTls VERSION 1.2 DESCRIPTION "Client for TLS")
+project(networkClientTcp VERSION 2.0 DESCRIPTION "Client for TCP")
+project(networkClientTls VERSION 2.0 DESCRIPTION "Client for TLS")
 
 # Include standard directories
 include(GNUInstallDirs)
@@ -37,13 +37,13 @@ target_link_options(networkClientTls PUBLIC $<$<CONFIG:RELEASE>: -s>)
 # Use C++17 standard
 set_target_properties(networkClientTcp PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION 1
+    SOVERSION 2
     PUBLIC_HEADER "include/TcpClient.h;include/NetworkClient.h;include/NetworkingDefines.h;include/NetworkClient.tpp"
     CXX_STANDARD 17
     CMAKE_CXX_STANDARD_REQUIRED True)
 set_target_properties(networkClientTls PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION 1
+    SOVERSION 2
     PUBLIC_HEADER "include/TlsClient.h;include/NetworkClient.h;include/NetworkingDefines.h;include/NetworkClient.tpp"
     CXX_STANDARD 17
     CMAKE_CXX_STANDARD_REQUIRED True)
