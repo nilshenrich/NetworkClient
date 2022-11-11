@@ -17,9 +17,6 @@ endif()
 # Source files to be compiled
 add_executable(example "main.cpp")
 
-# Set include path to search for headers
-include_directories(../include ${CMAKE_INSTALL_INCLUDEDIR})
-
 # Set compiler and linker flags
 target_compile_options(example PRIVATE -fexceptions
     $<$<CONFIG:DEBUG>: -DDEVELOP -Wall -g -Og>

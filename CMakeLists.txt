@@ -38,13 +38,13 @@ target_link_options(networkClientTls PUBLIC $<$<CONFIG:RELEASE>: -s>)
 set_target_properties(networkClientTcp PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
-    PUBLIC_HEADER "include/TcpClient.h;include/NetworkClient.h;include/NetworkingDefines.h"
+    PUBLIC_HEADER "include/TcpClient.h;include/NetworkClient.h;include/NetworkingDefines.h;include/NetworkClient.tpp"
     CXX_STANDARD 17
     CMAKE_CXX_STANDARD_REQUIRED True)
 set_target_properties(networkClientTls PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
-    PUBLIC_HEADER "include/TlsClient.h;include/NetworkClient.h;include/NetworkingDefines.h"
+    PUBLIC_HEADER "include/TlsClient.h;include/NetworkClient.h;include/NetworkingDefines.h;include/NetworkClient.tpp"
     CXX_STANDARD 17
     CMAKE_CXX_STANDARD_REQUIRED True)
 
