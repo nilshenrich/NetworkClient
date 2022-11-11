@@ -96,7 +96,7 @@ namespace networking
     {
     public:
         NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms)
-            : DELIMITER{delimiter},
+            : DELIMITER_FOR_FRAGMENTATION{delimiter},
               MAXIMUM_MESSAGE_LENGTH{messageMaxLen},
               CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
         virtual ~NetworkClient() {}
@@ -229,7 +229,7 @@ namespace networking
         std::vector<std::unique_ptr<RunningFlag>> workHandlersRunning;
 
         // Delimiter for the message framing (incoming and outgoing) (default is '\n')
-        const char DELIMITER;
+        const char DELIMITER_FOR_FRAGMENTATION;
 
         // Maximum message length (incoming and outgoing) (default is 2³² - 2 = 4294967294)
         const size_t MAXIMUM_MESSAGE_LENGTH;

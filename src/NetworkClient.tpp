@@ -117,7 +117,7 @@ int NetworkClient<SocketType, SocketDeleter>::start(
                                        }
                                    }};
     string msgEstablished{readMsg()};
-    if (msgEstablished != string{1, DELIMITER})
+    if (msgEstablished != string{1, DELIMITER_FOR_FRAGMENTATION})
     {
 #ifdef DEVELOP
         cerr << typeid(this).name() << "::" << __func__ << ": Wrong message marking the connection to be established: " << msgEstablished << endl;
@@ -183,7 +183,7 @@ bool NetworkClient<SocketType, SocketDeleter>::sendMsg(const std::string &msg)
     using namespace std;
 
     // Check if message doesn't contain delimiter
-    if (msg.find(DELIMITER) != string::npos)
+    if (msg.find(DELIMITER_FOR_FRAGMENTATION) != string::npos)
     {
 #ifdef DEVELOP
         cerr << typeid(this).name() << "::" << __func__ << ": Message contains delimiter" << endl;
@@ -204,7 +204,7 @@ bool NetworkClient<SocketType, SocketDeleter>::sendMsg(const std::string &msg)
 
     // Send the message to the server with leading and trailing characters to indicate the message length
     if (running)
-        return writeMsg(msg + string{DELIMITER});
+        return writeMsg(msg + string{DELIMITER_FOR_FRAGMENTATION});
 
 #ifdef DEVELOP
     cerr << typeid(this).name() << "::" << __func__ << ": Client not running" << endl;
@@ -253,12 +253,12 @@ void NetworkClient<SocketType, SocketDeleter>::receive()
 
         // Get raw message separated by delimiter
         // If delimiter is found, the message is split into two parts
-        size_t delimiter_pos{msg.find(DELIMITER)};
+        size_t delimiter_pos{msg.find(DELIMITER_FOR_FRAGMENTATION)};
         while (string::npos != delimiter_pos)
         {
             string msg_part{msg.substr(0, delimiter_pos)};
             msg = msg.substr(delimiter_pos + 1);
-            delimiter_pos = msg.find(DELIMITER);
+            delimiter_pos = msg.find(DELIMITER_FOR_FRAGMENTATION);
 
             // Check if the message is too long
             if (buffer.size() + msg_part.size() > MAXIMUM_MESSAGE_LENGTH)
