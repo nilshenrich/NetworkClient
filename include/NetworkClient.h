@@ -47,7 +47,7 @@ namespace networking
         }
 
     private:
-        std::string msg;
+        const std::string msg;
 
         // Delete default constructor
         NetworkClient_error() = delete;
