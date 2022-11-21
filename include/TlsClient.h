@@ -102,13 +102,6 @@ namespace networking
          */
         bool writeMsg(const std::string &msg) override final;
 
-        /**
-         * @brief Just call the special receive handler for TLS (wotkOnMessage_TlsClient)
-         *
-         * @param msg
-         */
-        void workOnMessage(const std::string msg) override final;
-
         // TLS context
         std::unique_ptr<SSL_CTX, void (*)(SSL_CTX *)> clientContext{nullptr, SSL_CTX_free};
 

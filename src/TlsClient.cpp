@@ -4,7 +4,8 @@ using namespace std;
 using namespace networking;
 
 TlsClient::TlsClient(std::ostream &os, int connectionEstablishedTimeout_ms) : NetworkClient(os, connectionEstablishedTimeout_ms) {}
-TlsClient::TlsClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms) {}
+TlsClient::TlsClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms,
+                     function<void(const string)> workOnMessage) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms, workOnMessage) {}
 
 TlsClient::~TlsClient()
 {
@@ -198,10 +199,4 @@ bool TlsClient::writeMsg(const string &msg)
 
     // Send message to server (Return false if send failed)
     return SSL_write(clientSocket.get(), msg.c_str(), lenMsg) == lenMsg;
-}
-
-void TlsClient::workOnMessage(const string msg)
-{
-    workOnMessage_TlsClient(move(msg));
-    return;
 }
