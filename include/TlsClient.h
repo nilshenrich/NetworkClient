@@ -51,14 +51,6 @@ namespace networking
          */
         virtual ~TlsClient();
 
-        /**
-         * @brief Do some stuff when a new message is received
-         * This method is abstract and must be implemented by derived classes
-         *
-         * @param tlsMsgFromServer
-         */
-        virtual void workOnMessage_TlsClient(const std::string tlsMsgFromServer) = 0;
-
     private:
         /**
          * @brief Initialize the client

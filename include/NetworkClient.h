@@ -44,8 +44,6 @@ namespace networking
             return c;
         }
     };
-    NullBuffer nullbuffer;
-    std::ostream nullstream{&nullbuffer};
 
     /**
      * @brief Exception class for the NetworkClient class.
@@ -273,6 +271,10 @@ namespace networking
 
         // Timeout for waiting for connection established marker (default is 1 second)
         const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
+
+        // Buffer/Stream doing nothing
+        NullBuffer nullbuffer;
+        std::ostream nullstream{&nullbuffer};
 
         // Disallow copy
         NetworkClient() = delete;

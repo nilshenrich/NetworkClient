@@ -35,14 +35,6 @@ namespace networking
          */
         virtual ~TcpClient();
 
-        /**
-         * @brief Do some stuff when a new message is received
-         * This method is abstract and must be implemented by derived classes
-         *
-         * @param tcpMsgFromServer
-         */
-        virtual void workOnMessage_TcpClient(const std::string tcpMsgFromServer) = 0;
-
     private:
         /**
          * @brief Initialize the client
