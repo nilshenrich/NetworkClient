@@ -1,6 +1,8 @@
 #ifndef TCPCLIENT_H
 #define TCPCLIENT_H
 
+#include <limits>
+
 #include "NetworkClient.h"
 
 namespace networking
@@ -11,30 +13,27 @@ namespace networking
         /**
          * @brief Constructor for continuous stream forwarding
          *
-         * @param os
+         * @param os                                Stream to forward incoming stream to
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
         TcpClient(std::ostream &os = std::cout, int connectionEstablishedTimeout_ms = 1000);
 
         /**
          * @brief Constructor for fragmented messages
          *
-         * @param delimiter
-         * @param messageMaxLen
+         * @param delimiter                         Character to split messages on
+         * @param messageMaxLen                     Maximum message length
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         * @param workOnMessage                     Working function on incoming message
          */
-        TcpClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000);
+        // TODO: Change order, so message length can use default value?
+        TcpClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000,
+                  std::function<void(const std::string)> workOnMessage = nullptr);
 
         /**
          * @brief Destructor
          */
         virtual ~TcpClient();
-
-        /**
-         * @brief Do some stuff when a new message is received
-         * This method is abstract and must be implemented by derived classes
-         *
-         * @param tcpMsgFromServer
-         */
-        virtual void workOnMessage_TcpClient(const std::string tcpMsgFromServer) = 0;
 
     private:
         /**
@@ -75,13 +74,6 @@ namespace networking
          * @return bool
          */
         bool writeMsg(const std::string &msg) override final;
-
-        /**
-         * @brief Just call the special receive handler for TCP (wotkOnMessage_TcpClient)
-         *
-         * @param msg
-         */
-        void workOnMessage(const std::string msg) override final;
 
         // Disallow copy
         TcpClient(const TcpClient &) = delete;

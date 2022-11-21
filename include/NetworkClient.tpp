@@ -290,7 +290,8 @@ void NetworkClient<SocketType, SocketDeleter>::receive()
                                   NetworkClient_running_manager running_mgr{*workRunning_p};
 
                                   // Run code to handle the incoming message
-                                  workOnMessage(move(buffer));
+                                  if (workOnMessage)
+                                      workOnMessage(move(buffer));
 
                                   return;
                               },

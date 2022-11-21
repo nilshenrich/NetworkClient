@@ -4,7 +4,8 @@ using namespace std;
 using namespace networking;
 
 TcpClient::TcpClient(std::ostream &os, int connectionEstablishedTimeout_ms) : NetworkClient(os, connectionEstablishedTimeout_ms) {}
-TcpClient::TcpClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms) {}
+TcpClient::TcpClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms,
+                     function<void(const string)> workOnMessage) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms, workOnMessage) {}
 
 TcpClient::~TcpClient()
 {
@@ -38,12 +39,6 @@ string TcpClient::readMsg()
 
     // Return the received message as a string (Empty string if receive failed)
     return string{buffer, 0 < lenMsg ? static_cast<size_t>(lenMsg) : 0UL};
-}
-
-void TcpClient::workOnMessage(const string msg)
-{
-    workOnMessage_TcpClient(move(msg));
-    return;
 }
 
 bool TcpClient::writeMsg(const string &msg)

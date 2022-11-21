@@ -20,8 +20,9 @@
 #include <cstring>
 #include <thread>
 #include <memory>
-#include <limits>
+#include <exception>
 #include <atomic>
+#include <functional>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -32,6 +33,18 @@
 
 namespace networking
 {
+    /**
+     * @brief Stream that actually does nothing
+     */
+    class NullBuffer : public std::streambuf
+    {
+    public:
+        int overflow(int c) override final
+        {
+            return c;
+        }
+    };
+
     /**
      * @brief Exception class for the NetworkClient class.
      */
@@ -95,10 +108,11 @@ namespace networking
         /**
          * @brief Constructor for continuous stream forwarding
          *
-         * @param os
-         * @param connectionEstablishedTimeout_ms
+         * @param os                                Stream to forward incoming stream to
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
-        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : CONTINUOUS_OUTPUT_STREAM{os},
+        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : workOnMessage{nullptr},
+                                                                               CONTINUOUS_OUTPUT_STREAM{os},
                                                                                DELIMITER_FOR_FRAGMENTATION{0},
                                                                                MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{0},
                                                                                MESSAGE_FRAGMENTATION_ENABLED{false},
@@ -107,15 +121,18 @@ namespace networking
         /**
          * @brief Constructor for fragmented messages
          *
-         * @param delimiter
-         * @param messageMaxLen
-         * @param connectionEstablishedTimeout_ms
+         * @param delimiter                         Character to split messages on
+         * @param messageMaxLen                     Maximum message length
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         * @param workOnMessage                     Working function on incoming message
          */
-        NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms) : CONTINUOUS_OUTPUT_STREAM{std::cout},
-                                                                                                   DELIMITER_FOR_FRAGMENTATION{delimiter},
-                                                                                                   MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
-                                                                                                   MESSAGE_FRAGMENTATION_ENABLED{true},
-                                                                                                   CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
+        NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms,
+                      std::function<void(const std::string)> workOnMessage) : workOnMessage{workOnMessage},
+                                                                              CONTINUOUS_OUTPUT_STREAM{nullstream},
+                                                                              DELIMITER_FOR_FRAGMENTATION{delimiter},
+                                                                              MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
+                                                                              MESSAGE_FRAGMENTATION_ENABLED{true},
+                                                                              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
 
         virtual ~NetworkClient() {}
 
@@ -205,15 +222,6 @@ namespace networking
          */
         virtual bool writeMsg(const std::string &msg) = 0;
 
-        /**
-         * @brief Do some stuff when a new message is received from the server.
-         * This method is called automatically as soon as a new message is received from the server.
-         * This method is abstract and must be implemented by derived classes.
-         *
-         * @param msg
-         */
-        virtual void workOnMessage(const std::string msg) = 0;
-
         // Client sockets (TCP and user defined)
         int tcpSocket;
         std::unique_ptr<SocketType, SocketDeleter> clientSocket{nullptr};
@@ -246,6 +254,9 @@ namespace networking
         std::vector<std::thread> workHandlers;
         std::vector<std::unique_ptr<RunningFlag>> workHandlersRunning;
 
+        // Pointer to worker function for incoming messages (for fragmentation mode only)
+        std::function<void(const std::string)> workOnMessage;
+
         // Out stream to forward continuous input stream to
         std::ostream &CONTINUOUS_OUTPUT_STREAM;
 
@@ -260,6 +271,10 @@ namespace networking
 
         // Timeout for waiting for connection established marker (default is 1 second)
         const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
+
+        // Buffer/Stream doing nothing
+        NullBuffer nullbuffer;
+        std::ostream nullstream{&nullbuffer};
 
         // Disallow copy
         NetworkClient() = delete;
