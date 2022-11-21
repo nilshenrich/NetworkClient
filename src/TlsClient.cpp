@@ -4,8 +4,10 @@ using namespace std;
 using namespace networking;
 
 TlsClient::TlsClient(std::ostream &os, int connectionEstablishedTimeout_ms) : NetworkClient(os, connectionEstablishedTimeout_ms) {}
-TlsClient::TlsClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms,
-                     function<void(const string)> workOnMessage) : NetworkClient(delimiter, messageMaxLen, connectionEstablishedTimeout_ms, workOnMessage) {}
+TlsClient::TlsClient(char delimiter,
+                     function<void(const string)> workOnMessage,
+                     size_t messageMaxLen,
+                     int connectionEstablishedTimeout_ms) : NetworkClient(delimiter, workOnMessage, messageMaxLen, connectionEstablishedTimeout_ms) {}
 
 TlsClient::~TlsClient()
 {

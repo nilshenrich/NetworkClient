@@ -122,17 +122,19 @@ namespace networking
          * @brief Constructor for fragmented messages
          *
          * @param delimiter                         Character to split messages on
+         * @param workOnMessage                     Working function on incoming message
          * @param messageMaxLen                     Maximum message length
          * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
-         * @param workOnMessage                     Working function on incoming message
          */
-        NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms,
-                      std::function<void(const std::string)> workOnMessage) : workOnMessage{workOnMessage},
-                                                                              CONTINUOUS_OUTPUT_STREAM{nullstream},
-                                                                              DELIMITER_FOR_FRAGMENTATION{delimiter},
-                                                                              MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
-                                                                              MESSAGE_FRAGMENTATION_ENABLED{true},
-                                                                              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
+        NetworkClient(char delimiter,
+                      std::function<void(const std::string)> workOnMessage,
+                      int connectionEstablishedTimeout_ms,
+                      size_t messageMaxLen) : workOnMessage{workOnMessage},
+                                              CONTINUOUS_OUTPUT_STREAM{nullstream},
+                                              DELIMITER_FOR_FRAGMENTATION{delimiter},
+                                              MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
+                                              MESSAGE_FRAGMENTATION_ENABLED{true},
+                                              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
 
         virtual ~NetworkClient() {}
 
