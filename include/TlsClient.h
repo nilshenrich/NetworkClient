@@ -1,6 +1,7 @@
 #ifndef TLSCLIENT_H
 #define TLSCLIENT_H
 
+#include <limits>
 #include <openssl/ssl.h>
 
 #include "NetworkClient.h"
@@ -28,17 +29,22 @@ namespace networking
         /**
          * @brief Constructor for continuous stream forwarding
          *
-         * @param os
+         * @param os                                Stream to forward incoming stream to
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
         TlsClient(std::ostream &os = std::cout, int connectionEstablishedTimeout_ms = 1000);
 
         /**
          * @brief Constructor for fragmented messages
          *
-         * @param delimiter
-         * @param messageMaxLen
+         * @param delimiter                         Character to split messages on
+         * @param messageMaxLen                     Maximum message length
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         * @param workOnMessage                     Working function on incoming message
          */
-        TlsClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000);
+        // TODO: Change order, so message length can use default value?
+        TlsClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000,
+                  std::function<void(const std::string)> workOnMessage = nullptr);
 
         /**
          * @brief Destructor

@@ -96,8 +96,8 @@ namespace networking
         /**
          * @brief Constructor for continuous stream forwarding
          *
-         * @param os
-         * @param connectionEstablishedTimeout_ms
+         * @param os                                Stream to forward incoming stream to
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
         NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : CONTINUOUS_OUTPUT_STREAM{os},
                                                                                workOnMessage{nullptr},
@@ -109,10 +109,10 @@ namespace networking
         /**
          * @brief Constructor for fragmented messages
          *
-         * @param delimiter     Character to split messages on
-         * @param messageMaxLen Maximum message length
-         * @param connectionEstablishedTimeout_ms
-         * @param workOnMessage Working function on incoming message
+         * @param delimiter                         Character to split messages on
+         * @param messageMaxLen                     Maximum message length
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         * @param workOnMessage                     Working function on incoming message
          */
         NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms,
                       std::function<void(const std::string)> workOnMessage) : CONTINUOUS_OUTPUT_STREAM{std::cout},
