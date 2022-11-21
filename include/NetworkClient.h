@@ -34,6 +34,20 @@
 namespace networking
 {
     /**
+     * @brief Stream that actually does nothing
+     */
+    class NullBuffer : public std::streambuf
+    {
+    public:
+        int overflow(int c) override final
+        {
+            return c;
+        }
+    };
+    NullBuffer nullbuffer;
+    std::ostream nullstream{&nullbuffer};
+
+    /**
      * @brief Exception class for the NetworkClient class.
      */
     class NetworkClient_error : public std::exception
@@ -99,8 +113,8 @@ namespace networking
          * @param os                                Stream to forward incoming stream to
          * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
-        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : CONTINUOUS_OUTPUT_STREAM{os},
-                                                                               workOnMessage{nullptr},
+        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : workOnMessage{nullptr},
+                                                                               CONTINUOUS_OUTPUT_STREAM{os},
                                                                                DELIMITER_FOR_FRAGMENTATION{0},
                                                                                MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{0},
                                                                                MESSAGE_FRAGMENTATION_ENABLED{false},
@@ -115,8 +129,8 @@ namespace networking
          * @param workOnMessage                     Working function on incoming message
          */
         NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms,
-                      std::function<void(const std::string)> workOnMessage) : CONTINUOUS_OUTPUT_STREAM{std::cout},
-                                                                              workOnMessage{workOnMessage},
+                      std::function<void(const std::string)> workOnMessage) : workOnMessage{workOnMessage},
+                                                                              CONTINUOUS_OUTPUT_STREAM{nullstream},
                                                                               DELIMITER_FOR_FRAGMENTATION{delimiter},
                                                                               MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
                                                                               MESSAGE_FRAGMENTATION_ENABLED{true},
