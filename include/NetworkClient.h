@@ -123,8 +123,8 @@ namespace networking
          *
          * @param delimiter                         Character to split messages on
          * @param workOnMessage                     Working function on incoming message
-         * @param messageMaxLen                     Maximum message length
          * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         * @param messageMaxLen                     Maximum message length
          */
         NetworkClient(char delimiter,
                       std::function<void(const std::string)> workOnMessage,

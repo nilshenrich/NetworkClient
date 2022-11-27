@@ -6,8 +6,8 @@ using namespace networking;
 TlsClient::TlsClient(std::ostream &os, int connectionEstablishedTimeout_ms) : NetworkClient(os, connectionEstablishedTimeout_ms) {}
 TlsClient::TlsClient(char delimiter,
                      function<void(const string)> workOnMessage,
-                     size_t messageMaxLen,
-                     int connectionEstablishedTimeout_ms) : NetworkClient(delimiter, workOnMessage, messageMaxLen, connectionEstablishedTimeout_ms) {}
+                     int connectionEstablishedTimeout_ms,
+                     size_t messageMaxLen) : NetworkClient(delimiter, workOnMessage, connectionEstablishedTimeout_ms, messageMaxLen) {}
 
 TlsClient::~TlsClient()
 {
