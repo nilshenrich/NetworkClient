@@ -4,19 +4,21 @@ Installable package to set up a client that can connect to a server on TCP level
 
 The compatible server can be found [here](https://github.com/nilshenrich/NetworkListener).
 
+A test run can be found [here](https://github.com/nilshenrich/NetworkTester/actions)
+
 ## Table of contents
 
 1. [General explanation](#general-explanation)
     1. [Specifications](#specifications)
 1. [Installation](#installation)
 1. [Usage](#usage)
-    1. [Non-abstract Methods](#non-abstract-methods)
+    1. [Preparation](#preparation)
+    1. [Methods](#methods)
 1. [Example](#example)
     1. [Get certificates](#get-certificates)
     1. [Run example](#run-example)
 1. [System requirements](#system-requirements)
 1. [Known issues](#known-issues)
-    1. [Success on server rejection](#success-on-server-rejection)
 
 ## General explanation
 
@@ -27,7 +29,7 @@ As the names say, **libnetworkClientTcp** creates a simple TCP client with no se
 
 ### Specifications
 
-1. Maximum message size (Sending and receiving):  **std::string::max_size() - 1** (2³² - 2 (4294967294) for most systems)
+\-
 
 ## Installation
 
@@ -82,75 +84,48 @@ Now the package is reade to use. Please see the example for how to use it.
 
 ## Usage
 
-*In the subfolder [example](https://github.com/nilshenrich/NetworkClient/blob/main/include/NetworkingDefines.h) you can find a good and simple example program that shows how to use the package*
+*In the subfolder [example](include/NetworkingDefines.h) you can find a good and simple example program that shows how to use the package*
 
-To use this package, a new class must be created deriving from **TcpClient** or **TlsClient** or both. These two classes are abstract, so an object of one of these raw types can't be created.
+### Preparation
 
-In this case, I would recommend a private derivation, because all **TcpClient**/**TlsClient** methods are not meant to be used in other places than a direct child class.
+To use this package, just create an instance of **TcpClient** or **TlsClient** by using one of the provided constructors.\
+For the data transfer, either the **fragmentation-mode** or the **forwarding-mode** can be chosen.\
+In **fragmentation-mode**, a delimiter character must defined to split the incoming data stream to explicit messages. Please note that when using this mode, the delimiter character can't be part of any message.\
+In **forwarding-mode**, all incoming data gets forwarded to an output stream of your choice. I recommend to use the append-mode when defining this output stream.
 
-1. Create a new class derived from **TcpClient** and **TlsClient**:
+1. Implement worker methods
 
     ```cpp
-    #include "NetworkListener/TcpClient.h"
-    #include "NetworkListener/TlsClient.h"
-
-    using namespace std;
-    using namespace networking;
-
-    // New class with TCP and TLS client functionality
-    class ExampleClient : private TcpClient, private TlsClient
+    // Worker for incoming message (Only used in fragmentation-mode)
+    void worker_message(string msg)
     {
-    public:
-        // Constructor and destructor
-        ExampleClient() {}
-        virtual ~ExampleClient() {}
-    };
+        // Do stuff with message
+        // (msg could be changed if needed)
+    }
+
+    // Output stream
+    ofstream ofs{"MyFwdFile", ios::app};
     ```
 
-1. Implement abstract methods from base classes
-    1. Work on message over TCP (unencrypted):
-
-        ```cpp
-        void workOnMessage_TcpClient(const std::string tcpMsgFromServer)
-        {
-            // Do some stuff when message is received
-        }
-        ```
-
-        This method is called automatically as soon as a new message from the server is received over an unencrypted TCP connection.
-
-        The **tcpMsgFromServer** parameter contains the received message as raw string.
-
-        This method is started in its own thread. So feel free to insert time intensive code here, the client continues running in parallel. But please make sure, your inserted code is thread safe (e.g. use [mutex](https://en.cppreference.com/w/cpp/thread/mutex)), so multiple executions of this method at the same time don't lead to a program crash.
-
-    1. Work on message over TLS (encrypted):
-
-        ```cpp
-        void workOnMessage_TlsClient(const std::string tlsMsgFromServer)
-        {
-            // Do some stuff when message is received
-        }
-        ```
-
-        This method is just the same as **workOnMessage_TcpClient**, but for receiving an encrypted message over a TLS connection.
-
-    **!! Please do never call one of these 2 abstract methods somewhere in your code. These methods are automatically called by the NetworkClient library.**
-
-    *Please note that all parameters of these abstract methods are **const**, so they can't be changed. If you need to do a message adaption, but don't want to copy the whole string for performance reasons, use the **move**-constructor:*
+1. Create instance
 
     ```cpp
-    std::string modifiable = std::move(tcpMsgFromServer);
-    modifiable += '\n'; // Message modification
+    // Fragmentation mode (Delimiter is line break in this case)
+    TcpClient tcp_fragm{'\n', &worker_message};
+    TlsClient tls_fragm{'\n', &worker_message};
+
+    // Forwarding mode
+    TcpClient tcp_fwd{ofs};
+    TlsClient tls_fwd{ofs};
     ```
 
-After these two steps your program is ready to be compiled.\
-But there are some further methods worth knowing about.
+### Methods
 
-### Non-abstract Methods
+All methods can be used the same way for **fragmentation-mode** or **forwarding-mode**.
 
 1. start():
 
-    The **start**-method is used to start a TCP or TLS client. When this method returns 0, the client runs in the background. If the return value is other that 0, please see [NetworkingDefines.h](https://github.com/nilshenrich/NetworkClient/blob/main/include/NetworkingDefines.h) for definition of error codes.\
+    The **start**-method is used to start a TCP or TLS client. When this method returns 0, the client runs in the background. If the return value is other that 0, please see [NetworkingDefines.h](include/NetworkingDefines.h) for definition of error codes.\
     If your class derived from both **TcpClient** and **TlsClient**, the class name must be specified when calling **start()**:
 
     ```cpp
@@ -216,10 +191,4 @@ The installation process in this project is adapted to debian-based linux distri
 
 ## Known issues
 
-### [Success on server rejection](https://github.com/nilshenrich/NetworkClient/issues/10)
-
-If the TLS client accepts the server certificate, the connection is assumed to be established, no matter if the server accepts the client's certificate or not.
-
-If a client tries to connect to TLS server with a self-signed certificate, the connection is rejected on server side, but the client assumes the connection to be accepted nevertheless.
-
-The good new is, an encrypted connection is not established for real, so messages can't be sent and received.
+\<no known issues\>

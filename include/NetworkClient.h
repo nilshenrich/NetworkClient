@@ -14,17 +14,15 @@
 #ifndef NETWORKCLIENT_H
 #define NETWORKCLIENT_H
 
-#ifdef DEVELOP
 #include <iostream>
-#endif // DEVELOP
-
 #include <string>
 #include <vector>
 #include <cstring>
 #include <thread>
 #include <memory>
-#include <limits>
+#include <exception>
 #include <atomic>
+#include <functional>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -35,6 +33,18 @@
 
 namespace networking
 {
+    /**
+     * @brief Stream that actually does nothing
+     */
+    class NullBuffer : public std::streambuf
+    {
+    public:
+        int overflow(int c) override final
+        {
+            return c;
+        }
+    };
+
     /**
      * @brief Exception class for the NetworkClient class.
      */
@@ -50,7 +60,7 @@ namespace networking
         }
 
     private:
-        std::string msg;
+        const std::string msg;
 
         // Delete default constructor
         NetworkClient_error() = delete;
@@ -95,10 +105,37 @@ namespace networking
     class NetworkClient
     {
     public:
-        NetworkClient(char delimiter, size_t messageMaxLen, int connectionEstablishedTimeout_ms)
-            : DELIMITER{delimiter},
-              MAXIMUM_MESSAGE_LENGTH{messageMaxLen},
-              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
+        /**
+         * @brief Constructor for continuous stream forwarding
+         *
+         * @param os                                Stream to forward incoming stream to
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         */
+        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : workOnMessage{nullptr},
+                                                                               CONTINUOUS_OUTPUT_STREAM{os},
+                                                                               DELIMITER_FOR_FRAGMENTATION{0},
+                                                                               MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{0},
+                                                                               MESSAGE_FRAGMENTATION_ENABLED{false},
+                                                                               CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
+
+        /**
+         * @brief Constructor for fragmented messages
+         *
+         * @param delimiter                         Character to split messages on
+         * @param workOnMessage                     Working function on incoming message
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         * @param messageMaxLen                     Maximum message length
+         */
+        NetworkClient(char delimiter,
+                      std::function<void(const std::string)> workOnMessage,
+                      int connectionEstablishedTimeout_ms,
+                      size_t messageMaxLen) : workOnMessage{workOnMessage},
+                                              CONTINUOUS_OUTPUT_STREAM{nullstream},
+                                              DELIMITER_FOR_FRAGMENTATION{delimiter},
+                                              MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
+                                              MESSAGE_FRAGMENTATION_ENABLED{true},
+                                              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
+
         virtual ~NetworkClient() {}
 
         /**
@@ -187,15 +224,6 @@ namespace networking
          */
         virtual bool writeMsg(const std::string &msg) = 0;
 
-        /**
-         * @brief Do some stuff when a new message is received from the server.
-         * This method is called automatically as soon as a new message is received from the server.
-         * This method is abstract and must be implemented by derived classes.
-         *
-         * @param msg
-         */
-        virtual void workOnMessage(const std::string msg) = 0;
-
         // Client sockets (TCP and user defined)
         int tcpSocket;
         std::unique_ptr<SocketType, SocketDeleter> clientSocket{nullptr};
@@ -228,14 +256,27 @@ namespace networking
         std::vector<std::thread> workHandlers;
         std::vector<std::unique_ptr<RunningFlag>> workHandlersRunning;
 
+        // Pointer to worker function for incoming messages (for fragmentation mode only)
+        std::function<void(const std::string)> workOnMessage;
+
+        // Out stream to forward continuous input stream to
+        std::ostream &CONTINUOUS_OUTPUT_STREAM;
+
         // Delimiter for the message framing (incoming and outgoing) (default is '\n')
-        const char DELIMITER;
+        const char DELIMITER_FOR_FRAGMENTATION;
 
         // Maximum message length (incoming and outgoing) (default is 2³² - 2 = 4294967294)
-        const size_t MAXIMUM_MESSAGE_LENGTH;
+        const size_t MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION;
+
+        // Flag if messages shall be fragmented
+        const bool MESSAGE_FRAGMENTATION_ENABLED;
 
         // Timeout for waiting for connection established marker (default is 1 second)
         const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
+
+        // Buffer/Stream doing nothing
+        NullBuffer nullbuffer;
+        std::ostream nullstream{&nullbuffer};
 
         // Disallow copy
         NetworkClient() = delete;
@@ -246,7 +287,7 @@ namespace networking
     // ============================== Implementation of non-abstract methods. ==============================
     // ====================== Must be in header file because of the template class. =======================
 
-#include "../src/NetworkClient.tpp"
+#include "NetworkClient.tpp"
 }
 
 #endif // NETWORKCLIENT_H

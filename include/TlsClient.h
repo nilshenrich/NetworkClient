@@ -1,6 +1,7 @@
 #ifndef TLSCLIENT_H
 #define TLSCLIENT_H
 
+#include <limits>
 #include <openssl/ssl.h>
 
 #include "NetworkClient.h"
@@ -25,16 +26,31 @@ namespace networking
     class TlsClient : public NetworkClient<SSL, NetworkClient_SSL_Deleter>
     {
     public:
-        TlsClient(char delimiter = '\n', size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1, int connectionEstablishedTimeout_ms = 1000);
-        virtual ~TlsClient();
+        /**
+         * @brief Constructor for continuous stream forwarding
+         *
+         * @param os                                Stream to forward incoming stream to
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         */
+        TlsClient(std::ostream &os = std::cout, int connectionEstablishedTimeout_ms = 1000);
 
         /**
-         * @brief Do some stuff when a new message is received
-         * This method is abstract and must be implemented by derived classes
+         * @brief Constructor for fragmented messages
          *
-         * @param tlsMsgFromServer
+         * @param delimiter                         Character to split messages on
+         * @param workOnMessage                     Working function on incoming message
+         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
+         * @param messageMaxLen                     Maximum message length
          */
-        virtual void workOnMessage_TlsClient(const std::string tlsMsgFromServer) = 0;
+        TlsClient(char delimiter,
+                  std::function<void(const std::string)> workOnMessage = nullptr,
+                  int connectionEstablishedTimeout_ms = 1000,
+                  size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1);
+
+        /**
+         * @brief Destructor
+         */
+        virtual ~TlsClient();
 
     private:
         /**
@@ -78,13 +94,6 @@ namespace networking
          * @return false
          */
         bool writeMsg(const std::string &msg) override final;
-
-        /**
-         * @brief Just call the special receive handler for TLS (wotkOnMessage_TlsClient)
-         *
-         * @param msg
-         */
-        void workOnMessage(const std::string msg) override final;
 
         // TLS context
         std::unique_ptr<SSL_CTX, void (*)(SSL_CTX *)> clientContext{nullptr, SSL_CTX_free};
