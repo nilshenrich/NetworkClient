@@ -91,7 +91,7 @@ Now the package is reade to use. Please see the example for how to use it.
 To use this package, just create an instance of **TcpClient** or **TlsClient** by using one of the provided constructors.\
 For the data transfer, either the **fragmentation-mode** or the **forwarding-mode** can be chosen.\
 In **fragmentation-mode**, a delimiter character must defined to split the incoming data stream to explicit messages. Please note that when using this mode, the delimiter character can't be part of any message.\
-In **forwarding-mode**, all incoming data gets forwarded to an output stream of your choice. I recommend to use the append-mode when defining this output stream.
+In **forwarding-mode**, all incoming data gets forwarded to an output stream of your choice. I recommend to use the normal writing mode when defining this output stream.
 
 1. Implement worker methods
 
@@ -104,7 +104,7 @@ In **forwarding-mode**, all incoming data gets forwarded to an output stream of 
     }
 
     // Output stream
-    ofstream ofs{"MyFwdFile", ios::app};
+    ofstream ofs{"MyFwdFile"};
     ```
 
 1. Create instance

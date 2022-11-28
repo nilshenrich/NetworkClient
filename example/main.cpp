@@ -40,8 +40,8 @@ int main()
         case 'c':
         case 'C':
         {
-            ofstream ofs_tcp{"MessageStream_TCP_Server", ios::app};
-            ofstream ofs_tls{"MessageStream_TLS_Server", ios::app};
+            ofstream ofs_tcp{"MessageStream_TCP_Server"};
+            ofstream ofs_tls{"MessageStream_TLS_Server"};
             TcpClient tcpClient{ofs_tcp};
             TlsClient tlsClient{ofs_tls};
             tcpClient.start("localhost", 8081);
