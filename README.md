@@ -14,6 +14,7 @@ A test run can be found [here](https://github.com/nilshenrich/NetworkTester/acti
 1. [Usage](#usage)
     1. [Preparation](#preparation)
     1. [Methods](#methods)
+    1. [Passing worker function](#passing-worker-function)
 1. [Example](#example)
     1. [Get certificates](#get-certificates)
     1. [Run example](#run-example)
@@ -86,12 +87,18 @@ Now the package is reade to use. Please see the example for how to use it.
 
 *In the subfolder [example](include/NetworkingDefines.h) you can find a good and simple example program that shows how to use the package*
 
+Please mind that the TcpClient and TlsClient are defined in namespace ```networking```, so all example code here expects this using directive:
+
+```cpp
+using namespace networking;
+```
+
 ### Preparation
 
 To use this package, just create an instance of **TcpClient** or **TlsClient** by using one of the provided constructors.\
 For the data transfer, either the **fragmentation-mode** or the **forwarding-mode** can be chosen.\
 In **fragmentation-mode**, a delimiter character must defined to split the incoming data stream to explicit messages. Please note that when using this mode, the delimiter character can't be part of any message.\
-In **forwarding-mode**, all incoming data gets forwarded to an output stream of your choice. I recommend to use the append-mode when defining this output stream.
+In **forwarding-mode**, all incoming data gets forwarded to an output stream of your choice. I recommend to use the normal writing mode when defining this output stream.
 
 1. Implement worker methods
 
@@ -104,7 +111,7 @@ In **forwarding-mode**, all incoming data gets forwarded to an output stream of 
     }
 
     // Output stream
-    ofstream ofs{"MyFwdFile", ios::app};
+    ofstream ofs{"MyFwdFile"};
     ```
 
 1. Create instance
@@ -160,6 +167,78 @@ All methods can be used the same way for **fragmentation-mode** or **forwarding-
     The **isRunning**-method returns the running flag of the NetworkClient.\
     **True** means: *The client is running*\
     **False** means: *The client is not running*
+
+### Passing worker function
+
+Passing worker functions might be a bit tricky depending on the definition functions definition.\
+The following examples only show passing the worker for incoming messages. Other workers can be passed similarly.\
+The following cases can be handled as shown:
+
+1. Standalone function:
+
+    The easiest way is using a standalone function that is not a part of any class.
+
+    ```cpp
+    void standalone(const string msg)
+    {
+        // Some code
+    }
+
+    // Delimiter set to \n
+    TcpClient tcpClient{'\n', &standalone};
+    ```
+
+1. Member function of this:
+
+    A worker function could also be defined as a class method. If the TCP/TLS client shall be created within the same class that holds the worker function (e.g. in initializer list), this can be done as follows:
+
+    ```cpp
+    class ExampleClass
+    {
+    public:
+        // Delimiter set to \n
+        ExampleClass(): tcpClient{'\n', ::std::bind(&ExampleClass::classMember, this, ::std::placeholders::_1)} {}
+        virtual ~ExampleClass() {}
+
+    private:
+        // TCP client as class member
+        TcpClient tcpClient;
+
+        void classMember(const string msg)
+        {
+            // Some code
+        }
+    };
+    ```
+
+    The **bind** function is used to get the function reference to a method from an object, in this case ```this```. For each attribute of the passed function, a placeholder with increasing number must be passed.
+
+1. Member function of foreign class:
+
+    Passing a member function from a foreign class to TCP/TLS client can be done similarly to above example.
+
+    ```cpp
+    class ExampleClass
+    {
+    public:
+        ExampleClass() {}
+        virtual ~ExampleClass() {}
+
+    private:
+        void classMember(const string msg)
+        {
+            // Some code
+        }
+    };
+
+    // Create object
+    ExampleClass exampleClass;
+
+    // TCP client outside from class
+    // Delimiter set to \n
+    TcpClient tcpClient{'\n', ::std::bind(&ExampleClass::classMember, exampleClass, ::std::placeholders::_1)};
+
+    ```
 
 ## Example
 
