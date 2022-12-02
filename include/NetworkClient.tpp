@@ -217,6 +217,12 @@ bool NetworkClient<SocketType, SocketDeleter>::sendMsg(const std::string &msg)
 }
 
 template <class SocketType, class SocketDeleter>
+void NetworkClient<SocketType, SocketDeleter>::setWorkOnMessage(std::function<void(const std::string)> worker)
+{
+    workOnMessage = worker;
+}
+
+template <class SocketType, class SocketDeleter>
 void NetworkClient<SocketType, SocketDeleter>::receive()
 {
     using namespace std;
