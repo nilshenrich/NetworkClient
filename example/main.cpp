@@ -54,8 +54,10 @@ int main()
         case 'f':
         case 'F':
         {
-            TcpClient tcpClient{'\n', &tcp_fragmented_workOnMessage};
-            TlsClient tlsClient{'\n', &tls_fragmented_workOnMessage};
+            TcpClient tcpClient{'\n'};
+            TlsClient tlsClient{'\n'};
+            tcpClient.setWorkOnMessage(&tcp_fragmented_workOnMessage);
+            tlsClient.setWorkOnMessage(&tls_fragmented_workOnMessage);
             tcpClient.start("localhost", 8081);
             tlsClient.start("localhost", 8082, "../keys/ca/ca_cert.pem", "../keys/client/client_cert.pem", "../keys/client/client_key.pem");
             tcpClient.sendMsg("Hello TCP server! - fragmentation mode");
