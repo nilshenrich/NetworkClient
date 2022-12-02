@@ -111,8 +111,7 @@ namespace networking
          * @param os                                Stream to forward incoming stream to
          * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
-        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : workOnMessage{nullptr},
-                                                                               CONTINUOUS_OUTPUT_STREAM{os},
+        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : CONTINUOUS_OUTPUT_STREAM{os},
                                                                                DELIMITER_FOR_FRAGMENTATION{0},
                                                                                MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{0},
                                                                                MESSAGE_FRAGMENTATION_ENABLED{false},
@@ -122,15 +121,12 @@ namespace networking
          * @brief Constructor for fragmented messages
          *
          * @param delimiter                         Character to split messages on
-         * @param workOnMessage                     Working function on incoming message
          * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          * @param messageMaxLen                     Maximum message length
          */
         NetworkClient(char delimiter,
-                      std::function<void(const std::string)> workOnMessage,
                       int connectionEstablishedTimeout_ms,
-                      size_t messageMaxLen) : workOnMessage{workOnMessage},
-                                              CONTINUOUS_OUTPUT_STREAM{nullstream},
+                      size_t messageMaxLen) : CONTINUOUS_OUTPUT_STREAM{nullstream},
                                               DELIMITER_FOR_FRAGMENTATION{delimiter},
                                               MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
                                               MESSAGE_FRAGMENTATION_ENABLED{true},
@@ -168,6 +164,13 @@ namespace networking
          * @return false
          */
         bool sendMsg(const std::string &msg);
+
+        /**
+         * @brief Set worker executed on each incoming message in fragmentation mode
+         *
+         * @param worker
+         */
+        void setWorkOnMessage(std::function<void(const std::string)> worker);
 
         /**
          * @brief Return if client is running
@@ -257,7 +260,7 @@ namespace networking
         std::vector<std::unique_ptr<RunningFlag>> workHandlersRunning;
 
         // Pointer to worker function for incoming messages (for fragmentation mode only)
-        std::function<void(const std::string)> workOnMessage;
+        std::function<void(const std::string)> workOnMessage{nullptr};
 
         // Out stream to forward continuous input stream to
         std::ostream &CONTINUOUS_OUTPUT_STREAM;

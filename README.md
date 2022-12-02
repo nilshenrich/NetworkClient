@@ -100,6 +100,8 @@ For the data transfer, either the **fragmentation-mode** or the **forwarding-mod
 In **fragmentation-mode**, a delimiter character must defined to split the incoming data stream to explicit messages. Please note that when using this mode, the delimiter character can't be part of any message.\
 In **forwarding-mode**, all incoming data gets forwarded to an output stream of your choice. I recommend to use the normal writing mode when defining this output stream.
 
+For fragmentation mode, a worker function can be defined that is executed automatically every time a new message is received. For more details, please check [Passing worker function](#passing-worker-function).
+
 1. Implement worker methods
 
     ```cpp
@@ -118,12 +120,18 @@ In **forwarding-mode**, all incoming data gets forwarded to an output stream of 
 
     ```cpp
     // Fragmentation mode (Delimiter is line break in this case)
-    TcpClient tcp_fragm{'\n', &worker_message};
-    TlsClient tls_fragm{'\n', &worker_message};
+    TcpClient tcp_fragm{'\n'};
+    TlsClient tls_fragm{'\n'};
+
+    // You can also give optional arguments:
+    //  - Maximum amount ot time (number in milliseconds) for server to verify an established connection. -> Default is 1000ms
+    //  - Maximum length of messages (incoming and sent). -> Default is the maximum length a string can handle on your system
+    TcpClient tcp_fragm_opt{'\n', 50, 100};
+    TlsClient tls_fragm_opt{'\n', 50, 100};
 
     // Forwarding mode
-    TcpClient tcp_fwd{ofs};
-    TlsClient tls_fwd{ofs};
+    TcpClient tcp_fwd;
+    TlsClient tls_fwd;
     ```
 
 ### Methods
@@ -185,7 +193,8 @@ The following cases can be handled as shown:
     }
 
     // Delimiter set to \n
-    TcpClient tcpClient{'\n', &standalone};
+    TcpClient tcpClient{'\n'};
+    tcpClient.setWorkOnMessage(&standalone);
     ```
 
 1. Member function of this:
@@ -197,7 +206,10 @@ The following cases can be handled as shown:
     {
     public:
         // Delimiter set to \n
-        ExampleClass(): tcpClient{'\n', ::std::bind(&ExampleClass::classMember, this, ::std::placeholders::_1)} {}
+        ExampleClass(): tcpClient{'\n'}
+        {
+            tcpClient.setWorkOnMessage(::std::bind(&ExampleClass::classMember, this, ::std::placeholders::_1));
+        }
         virtual ~ExampleClass() {}
 
     private:
@@ -236,8 +248,8 @@ The following cases can be handled as shown:
 
     // TCP client outside from class
     // Delimiter set to \n
-    TcpClient tcpClient{'\n', ::std::bind(&ExampleClass::classMember, exampleClass, ::std::placeholders::_1)};
-
+    TcpClient tcpClient{'\n'};
+    tcpClient.setWorkOnMessage(::std::bind(&ExampleClass::classMember, exampleClass, ::std::placeholders::_1));
     ```
 
 ## Example

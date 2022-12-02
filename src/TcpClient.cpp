@@ -5,9 +5,8 @@ using namespace networking;
 
 TcpClient::TcpClient(std::ostream &os, int connectionEstablishedTimeout_ms) : NetworkClient(os, connectionEstablishedTimeout_ms) {}
 TcpClient::TcpClient(char delimiter,
-                     function<void(const string)> workOnMessage,
                      int connectionEstablishedTimeout_ms,
-                     size_t messageMaxLen) : NetworkClient(delimiter, workOnMessage, connectionEstablishedTimeout_ms, messageMaxLen) {}
+                     size_t messageMaxLen) : NetworkClient(delimiter, connectionEstablishedTimeout_ms, messageMaxLen) {}
 
 TcpClient::~TcpClient()
 {

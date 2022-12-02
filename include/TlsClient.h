@@ -38,12 +38,10 @@ namespace networking
          * @brief Constructor for fragmented messages
          *
          * @param delimiter                         Character to split messages on
-         * @param workOnMessage                     Working function on incoming message
          * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          * @param messageMaxLen                     Maximum message length
          */
         TlsClient(char delimiter,
-                  std::function<void(const std::string)> workOnMessage = nullptr,
                   int connectionEstablishedTimeout_ms = 1000,
                   size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1);
 
