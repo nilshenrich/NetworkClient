@@ -252,6 +252,18 @@ The following cases can be handled as shown:
     tcpClient.setWorkOnMessage(::std::bind(&ExampleClass::classMember, exampleClass, ::std::placeholders::_1));
     ```
 
+1. Lambda
+
+    A worker function could also be defined directly using a lambda.
+
+    ```cpp
+    TcpServer tcpServer;
+    tcpServer.setWorkOnEstablished([](const int clientId)
+    {
+        // Some code
+    });
+    ```
+
 ## Example
 
 This repository contains a small example to show the usage of this package. It creates two client, one using unsecure TCP, the other using encrypted and two-way-authenticated TLS (two-way authentication means, the client authenticates itself with a CA-signed certificate ad forces the server to also authenticate itself with his own CA-signed certificate).\
