@@ -252,9 +252,6 @@ namespace networking
         // Thread for receiving data from the server
         std::thread recHandler{};
 
-        // timeout thread for waiting for connection established marker
-        std::thread estConnTimeoutHandler{};
-
         // All working threads and their running status
         std::vector<std::thread> workHandlers;
         std::vector<std::unique_ptr<RunningFlag>> workHandlersRunning;
