@@ -30,20 +30,16 @@ namespace networking
          * @brief Constructor for continuous stream forwarding
          *
          * @param os                                Stream to forward incoming stream to
-         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
-        TlsClient(std::ostream &os = std::cout, int connectionEstablishedTimeout_ms = 1000);
+        TlsClient(std::ostream &os = std::cout);
 
         /**
          * @brief Constructor for fragmented messages
          *
          * @param delimiter                         Character to split messages on
-         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          * @param messageMaxLen                     Maximum message length
          */
-        TlsClient(char delimiter,
-                  int connectionEstablishedTimeout_ms = 1000,
-                  size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1);
+        TlsClient(char delimiter, size_t messageMaxLen = std::numeric_limits<size_t>::max() - 1);
 
         /**
          * @brief Destructor

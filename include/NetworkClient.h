@@ -109,28 +109,22 @@ namespace networking
          * @brief Constructor for continuous stream forwarding
          *
          * @param os                                Stream to forward incoming stream to
-         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          */
-        NetworkClient(std::ostream &os, int connectionEstablishedTimeout_ms) : CONTINUOUS_OUTPUT_STREAM{os},
-                                                                               DELIMITER_FOR_FRAGMENTATION{0},
-                                                                               MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{0},
-                                                                               MESSAGE_FRAGMENTATION_ENABLED{false},
-                                                                               CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
+        NetworkClient(std::ostream &os) : CONTINUOUS_OUTPUT_STREAM{os},
+                                          DELIMITER_FOR_FRAGMENTATION{0},
+                                          MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{0},
+                                          MESSAGE_FRAGMENTATION_ENABLED{false} {}
 
         /**
          * @brief Constructor for fragmented messages
          *
          * @param delimiter                         Character to split messages on
-         * @param connectionEstablishedTimeout_ms   Connection timeout [ms]
          * @param messageMaxLen                     Maximum message length
          */
-        NetworkClient(char delimiter,
-                      int connectionEstablishedTimeout_ms,
-                      size_t messageMaxLen) : CONTINUOUS_OUTPUT_STREAM{nullstream},
-                                              DELIMITER_FOR_FRAGMENTATION{delimiter},
-                                              MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
-                                              MESSAGE_FRAGMENTATION_ENABLED{true},
-                                              CONNECTION_ESTABLISHED_TIMEOUT_ms{connectionEstablishedTimeout_ms} {}
+        NetworkClient(char delimiter, size_t messageMaxLen) : CONTINUOUS_OUTPUT_STREAM{nullstream},
+                                                              DELIMITER_FOR_FRAGMENTATION{delimiter},
+                                                              MAXIMUM_MESSAGE_LENGTH_FOR_FRAGMENTATION{messageMaxLen},
+                                                              MESSAGE_FRAGMENTATION_ENABLED{true} {}
 
         virtual ~NetworkClient() {}
 
@@ -270,9 +264,6 @@ namespace networking
 
         // Flag if messages shall be fragmented
         const bool MESSAGE_FRAGMENTATION_ENABLED;
-
-        // Timeout for waiting for connection established marker (default is 1 second)
-        const std::chrono::milliseconds CONNECTION_ESTABLISHED_TIMEOUT_ms;
 
         // Buffer/Stream doing nothing
         NullBuffer nullbuffer;
