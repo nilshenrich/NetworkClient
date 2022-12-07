@@ -116,6 +116,8 @@ For fragmentation mode, a worker function can be defined that is executed automa
     ofstream ofs{"MyFwdFile"};
     ```
 
+    Please be aware that the ```stop``` method must not be used in the worker function. This would lead to a program stuck.
+
 1. Create instance
 
     ```cpp
