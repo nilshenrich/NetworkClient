@@ -90,43 +90,6 @@ int NetworkClient<SocketType, SocketDeleter>::start(
         return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
     }
 
-    // Wait for incoming message to mark the connection as established
-    // If the connection is not established within the timeout, stop client and return with error
-    estConnTimeoutHandler = thread{[this]()
-                                   {
-                                       // Timeout for establishing connection
-                                       this_thread::sleep_for(CONNECTION_ESTABLISHED_TIMEOUT_ms);
-
-                                       // If the connection is not established, stop client and return with error
-                                       if (!running)
-                                       {
-#ifdef DEVELOP
-                                           cerr << typeid(this).name() << "::" << __func__ << ": Connection to server could not be established" << endl;
-#endif // DEVELOP
-
-                                           // Block the TCP socket to abort receiving process
-                                           // If shutdown failed, abort stop here
-                                           connectionDeinit();
-                                           if (shutdown(tcpSocket, SHUT_RDWR))
-                                               return;
-
-                                           // Close the TCP socket
-                                           close(tcpSocket);
-
-                                           return;
-                                       }
-                                   }};
-    string msgEstablished{readMsg()};
-    if (msgEstablished != string{1, DELIMITER_FOR_FRAGMENTATION})
-    {
-#ifdef DEVELOP
-        cerr << typeid(this).name() << "::" << __func__ << ": Wrong message marking the connection to be established: " << msgEstablished << endl;
-#endif // DEVELOP
-
-        stop();
-        return NETWORKCLIENT_ERROR_START_CONNECT_INIT;
-    }
-
     // Receive incoming data from the server infinitely in the background while the client is running
     // If background task already exists, return with error
     if (recHandler.joinable())
@@ -150,10 +113,6 @@ void NetworkClient<SocketType, SocketDeleter>::stop()
 
     // Stop the client
     running = false;
-
-    // Wait for established connection timeout thread to finish
-    if (estConnTimeoutHandler.joinable())
-        estConnTimeoutHandler.join();
 
     // Block the TCP socket to abort receiving process
     connectionDeinit();

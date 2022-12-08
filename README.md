@@ -116,6 +116,8 @@ For fragmentation mode, a worker function can be defined that is executed automa
     ofstream ofs{"MyFwdFile"};
     ```
 
+    Please be aware that the ```stop``` method must not be used in the worker function. This would lead to a program stuck.
+
 1. Create instance
 
     ```cpp
@@ -250,6 +252,18 @@ The following cases can be handled as shown:
     // Delimiter set to \n
     TcpClient tcpClient{'\n'};
     tcpClient.setWorkOnMessage(::std::bind(&ExampleClass::classMember, exampleClass, ::std::placeholders::_1));
+    ```
+
+1. Lambda
+
+    A worker function could also be defined directly using a lambda.
+
+    ```cpp
+    TcpServer tcpServer;
+    tcpServer.setWorkOnEstablished([](const int clientId)
+    {
+        // Some code
+    });
     ```
 
 ## Example

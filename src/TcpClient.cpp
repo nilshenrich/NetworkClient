@@ -3,10 +3,8 @@
 using namespace std;
 using namespace networking;
 
-TcpClient::TcpClient(std::ostream &os, int connectionEstablishedTimeout_ms) : NetworkClient(os, connectionEstablishedTimeout_ms) {}
-TcpClient::TcpClient(char delimiter,
-                     int connectionEstablishedTimeout_ms,
-                     size_t messageMaxLen) : NetworkClient(delimiter, connectionEstablishedTimeout_ms, messageMaxLen) {}
+TcpClient::TcpClient(std::ostream &os) : NetworkClient(os) {}
+TcpClient::TcpClient(char delimiter, size_t messageMaxLen) : NetworkClient(delimiter, messageMaxLen) {}
 
 TcpClient::~TcpClient()
 {
