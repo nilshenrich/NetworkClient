@@ -39,7 +39,7 @@ As already mentioned in [General explanation](#general-explanation), this projec
 1. Install **build-essential**, **cmake**, **openssl** and **libssl-dev**:
 
     ```console
-    sudo apt install build-essential cmake
+    sudo apt install build-essential cmake openssl libssl-dev
     ```
 
     **build-essential** contains compilers and libraries to compile C/C++ code on debian-based systems.\
