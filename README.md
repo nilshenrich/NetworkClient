@@ -125,15 +125,19 @@ For fragmentation mode, a worker function can be defined that is executed automa
     TcpClient tcp_fragm{'\n'};
     TlsClient tls_fragm{'\n'};
 
-    // You can also give optional arguments:
-    //  - Maximum amount ot time (number in milliseconds) for server to verify an established connection. -> Default is 1000ms
-    //  - Maximum length of messages (incoming and sent). -> Default is the maximum length a string can handle on your system
-    TcpClient tcp_fragm_opt{'\n', 50, 100};
-    TlsClient tls_fragm_opt{'\n', 50, 100};
+    // You can also give an optional argument for maximum length of messages (incoming and sent). -> Default is the maximum length a string can handle on your system
+    TcpClient tcp_fragm_opt{'\n', 100};
+    TlsClient tls_fragm_opt{'\n', 100};
 
     // Forwarding mode
     TcpClient tcp_fwd;
     TlsClient tls_fwd;
+
+    // You can give any out stream as optional argument. -> Default is ::std::cout
+    ::std::ofstream ofs_file_tcp{"TCP.txt"};
+    ::std::ofstream ofs_file_tls{"TLS.txt"};
+    TcpClient tcp_fwd{ofs_file_tcp};
+    TlsClient tls_fwd{ofs_file_tls};
     ```
 
 ### Methods
