@@ -24,15 +24,21 @@ using namespace networking;
 void tcp_fragmented_workOnMessage(string msg) { cout << "Message from TCP server: " << msg << endl; }
 void tls_fragmented_workOnMessage(string msg) { cout << "Message from TLS server: " << msg << endl; }
 
+void printHelp()
+{
+    cout << "What mode shall be used?" << endl
+         << "    c: Continuous stream" << endl
+         << "    f: Fragmented messages" << endl
+         << "    q: Exit program" << endl;
+}
+
 int main()
 {
+    printHelp();
+
     // User decision
     while (true)
     {
-        cout << "What mode shall be used?" << endl
-             << "    c: Continuous stream" << endl
-             << "    f: Fragmented messages" << endl
-             << "    other key: Exit program" << endl;
         char decision;
         cin >> decision;
         switch (decision)
@@ -49,6 +55,7 @@ int main()
             this_thread::sleep_for(50ms); // Wait a short time for connection to be established
             tcpClient.sendMsg("Hello TCP server! - forwarding mode");
             tlsClient.sendMsg("Hello TLS server! - forwarding mode");
+            this_thread::sleep_for(100ms); // Wait short time before closing connection
             break;
         }
 
@@ -64,11 +71,18 @@ int main()
             this_thread::sleep_for(50ms); // Wait a short time for connection to be established
             tcpClient.sendMsg("Hello TCP server! - fragmentation mode");
             tlsClient.sendMsg("Hello TLS server! - fragmentation mode");
+            this_thread::sleep_for(100ms); // Wait short time before closing connection
             break;
         }
 
-        default:
+        case 'q':
+        case 'Q':
+            cout << "Exit example program" << endl;
             return 0;
+
+        default:
+            printHelp();
+            break;
         }
     }
 }
